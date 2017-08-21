@@ -1,4 +1,4 @@
-module Main exposing (..)
+module App exposing (main)
 
 import Html exposing (Html)
 import State exposing (init, subscriptions, update)
