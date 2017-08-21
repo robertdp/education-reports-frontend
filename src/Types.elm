@@ -5,11 +5,11 @@ import RemoteData exposing (WebData)
 
 type Msg
     = InitialDataResponse (WebData InitialData)
-    | SearchIndividual String
-    | SearchAggregate String
+    | Search String
     | SelectEmployee Employee
     | SelectCourse Course
     | SelectOrganisation Organisation
+    | DeselectOrganisation
     | ToggleSidebarMode
 
 
@@ -19,6 +19,10 @@ type alias Email =
 
 type alias Id =
     Int
+
+
+type alias Url =
+    String
 
 
 type alias Category =
@@ -32,7 +36,6 @@ type alias Course =
     { id : Id
     , fullName : String
     , shortName : String
-    , categoryId : Id
     }
 
 
@@ -81,9 +84,15 @@ type alias InitialData =
 type alias Model =
     { data : WebData InitialData
     , report : Maybe Report
-    , sidebarMode : Bool
+    , sidebar : Sidebar
+    , search : String
     , api : String
     }
+
+
+type Sidebar
+    = SearchIndividual
+    | SearchAggregate
 
 
 type alias Flags =

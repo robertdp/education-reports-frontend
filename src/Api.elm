@@ -6,36 +6,50 @@ import RemoteData
 import Types exposing (..)
 
 
-loadInitialData : String -> Cmd Msg
+loadInitialData : Url -> Cmd Msg
 loadInitialData api =
     let
         endpoint =
             api ++ "/initial"
     in
-        Http.get endpoint decodeInitialData
+        Http.get endpoint initialDataDecoder
             |> RemoteData.sendRequest
             |> Cmd.map InitialDataResponse
 
 
-decodeInitialData : Decoder InitialData
-decodeInitialData =
+loadEmployeeData : Url -> Employee -> Cmd Msg
+loadEmployeeData api employee =
+    Cmd.none
+
+
+loadCourseData : Url -> Course -> Cmd Msg
+loadCourseData api course =
+    Cmd.none
+
+
+loadCourseAndOrganisationData : Url -> Course -> Organisation -> Cmd Msg
+loadCourseAndOrganisationData url course organisation =
+    Cmd.none
+
+
+initialDataDecoder : Decoder InitialData
+initialDataDecoder =
     map3 InitialData
-        (field "courses" (list decodeCourse))
-        (field "employees" (list decodeEmployee))
-        (field "organisations" (list decodeOrganisation))
+        (field "courses" (list courseDecoder))
+        (field "employees" (list employeeDecoder))
+        (field "organisations" (list organisationDecoder))
 
 
-decodeCourse : Decoder Course
-decodeCourse =
-    map4 Course
+courseDecoder : Decoder Course
+courseDecoder =
+    map3 Course
         (field "id" int)
         (field "fullName" string)
         (field "shortName" string)
-        (succeed 0)
 
 
-decodeEmployee : Decoder Employee
-decodeEmployee =
+employeeDecoder : Decoder Employee
+employeeDecoder =
     map4 Employee
         (field "email" string)
         (field "name" string)
@@ -43,8 +57,8 @@ decodeEmployee =
         (field "organisationId" int)
 
 
-decodeOrganisation : Decoder Organisation
-decodeOrganisation =
+organisationDecoder : Decoder Organisation
+organisationDecoder =
     map4 Organisation
         (field "id" int)
         (field "name" string)
