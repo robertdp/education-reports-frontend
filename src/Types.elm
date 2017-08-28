@@ -1,10 +1,13 @@
 module Types exposing (..)
 
+import Date exposing (Date)
+import Dict exposing (Dict)
 import RemoteData exposing (WebData)
 
 
 type Msg
-    = InitialDataResponse (WebData InitialData)
+    = InitialDataLoaded (WebData InitialData)
+    | IndividualReportLoaded Employee (WebData (List Enrolment))
     | Search String
     | SelectEmployee Employee
     | SelectCourse Course
@@ -25,6 +28,10 @@ type alias Url =
     String
 
 
+type alias EmployeeDict =
+    Dict.Dict Email Employee
+
+
 type alias Category =
     { id : Id
     , name : String
@@ -34,7 +41,7 @@ type alias Category =
 
 type alias Course =
     { id : Id
-    , fullName : String
+    , name : String
     , shortName : String
     }
 
@@ -51,27 +58,28 @@ type alias Organisation =
     { id : Id
     , name : String
     , managerEmails : List Email
+    , employeeEmails : List Email
     , parentId : Maybe Id
     }
 
 
-type CompletionStatus
-    = Completed
-    | Incomplete
+type alias Enrolment =
+    { employeeEmail : Email
+    , courseId : Id
+    , status : EnrolmentStatus
+    }
 
 
-type IndividualReport
-    = ForIndividual Employee (WebData (List Id))
-
-
-type AggregateReport
-    = ForCourse Course (WebData (List Email))
-    | ForOrganisation Organisation Course (WebData (List Email))
+type EnrolmentStatus
+    = NotEnrolled
+    | Enrolled
+    | Completed Date
 
 
 type Report
-    = Individual IndividualReport
-    | Aggregate AggregateReport
+    = ForIndividual Employee (WebData (List Enrolment))
+    | ForCourse Course (WebData (List Enrolment))
+    | ForOrganisation Organisation Course (WebData (List Enrolment))
 
 
 type alias InitialData =
@@ -82,7 +90,10 @@ type alias InitialData =
 
 
 type alias Model =
-    { data : WebData InitialData
+    { employees : WebData (List Employee)
+    , courses : WebData (List Course)
+    , organisations : WebData (List Organisation)
+    , organisationMap : Dict Id Organisation
     , report : Maybe Report
     , sidebar : Sidebar
     , search : String
