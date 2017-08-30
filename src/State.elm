@@ -8,8 +8,9 @@ import Types exposing (..)
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    { employees = NotAsked
-    , courses = NotAsked
+    { courses = NotAsked
+    , courseMap = Dict.empty
+    , employees = NotAsked
     , organisations = NotAsked
     , organisationMap = Dict.empty
     , report = Nothing
@@ -22,9 +23,23 @@ init flags =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "Msg" msg of
         InitialDataLoaded data ->
             let
+                courses =
+                    RemoteData.map .courses data
+
+                courseMap =
+                    RemoteData.map
+                        (List.foldl
+                            (\course map ->
+                                Dict.insert course.id course map
+                            )
+                            model.courseMap
+                        )
+                        courses
+                        |> RemoteData.withDefault model.courseMap
+
                 employees =
                     RemoteData.map .employees data
 
@@ -43,7 +58,9 @@ update msg model =
                         |> RemoteData.withDefault model.organisationMap
             in
                 { model
-                    | employees = employees
+                    | courses = courses
+                    , courseMap = courseMap
+                    , employees = employees
                     , organisations = organisations
                     , organisationMap = organisationMap
                 }

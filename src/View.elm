@@ -1,8 +1,10 @@
 module View exposing (..)
 
 import Color
+import Component.DashboardCard as DashboardCard
+import Dict exposing (Dict)
 import Element exposing (Element, button, column, el, empty, inputText, row, text, viewport)
-import Element.Attributes exposing (center, fill, height, padding, paddingXY, px, scrollbars, spacing, verticalCenter, width, yScrollbar)
+import Element.Attributes exposing (center, fill, height, padding, paddingXY, placeholder, px, scrollbars, spacing, verticalCenter, width, yScrollbar)
 import Element.Events exposing (onClick, onInput)
 import Html
 import RemoteData exposing (RemoteData(..), WebData)
@@ -24,13 +26,18 @@ type Styles
     | SearchInput
     | ResultList
     | ResultItem
+    | ResultItemEmployeeName
+    | ResultItemEmployeeEmail
     | EmployeeName
     | EmployeeEmail
+    | ReportHeading
+    | CourseList
+    | DashboardCard DashboardCard.Style
 
 
 stylesheet : Style.StyleSheet Styles variation
 stylesheet =
-    Style.styleSheet
+    Style.styleSheet <|
         [ style None []
         , style Main
             [ Font.typeface [ "Roboto", "メイリオ", "Meiryo", "sans-serif" ]
@@ -74,44 +81,55 @@ stylesheet =
                 [ Color.background Color.lightYellow
                 ]
             ]
-        , style EmployeeName []
-        , style EmployeeEmail
+        , style ResultItemEmployeeName []
+        , style ResultItemEmployeeEmail
             [ Font.size 12
             , Color.text Color.darkCharcoal
             ]
+        , style EmployeeName
+            [ Font.size 20
+            ]
+        , style EmployeeEmail
+            [ Color.text Color.darkCharcoal
+            ]
+        , style ReportHeading
+            [ Font.size 17
+            ]
+        , style CourseList
+            [ Color.text Color.darkCharcoal
+            ]
         ]
+            ++ DashboardCard.styles DashboardCard
 
 
 view : Model -> Html.Html Msg
 view model =
-    case Debug.log "Report" model.report of
-        _ ->
-            viewport stylesheet <|
-                row Main
-                    [ height <| fill 1 ]
-                    [ column Sidebar
-                        [ width <| px 256 ]
-                        [ -- row None
-                          --     [ height <| px 60
-                          --     , verticalCenter
-                          --     , center
-                          --     ]
-                          --     [ toggleModeButton "Change modes"
-                          --     ]
-                          -- ,
-                          sidebar model
-                        ]
-                    , column None
-                        [ width <| fill 1 ]
-                        [ row Heading
-                            [ height <| px 60
-                            , verticalCenter
-                            , paddingXY 32 0
-                            ]
-                            [ el None [] (text "HUE Education Reports") ]
-                        , el Body [ height <| fill 1 ] <| el None [ paddingXY 32 24 ] <| body model
-                        ]
+    viewport stylesheet <|
+        row Main
+            [ height <| fill 1 ]
+            [ column Sidebar
+                [ width <| px 256 ]
+                [ -- row None
+                  --     [ height <| px 60
+                  --     , verticalCenter
+                  --     , center
+                  --     ]
+                  --     [ toggleModeButton "Change modes"
+                  --     ]
+                  -- ,
+                  sidebar model
+                ]
+            , column None
+                [ width <| fill 1 ]
+                [ row Heading
+                    [ height <| px 60
+                    , verticalCenter
+                    , paddingXY 32 0
                     ]
+                    [ el None [] (text "HUE Education Reports") ]
+                , el Body [ height <| fill 1 ] <| el None [ paddingXY 32 24 ] <| body model
+                ]
+            ]
 
 
 toggleModeButton : String -> Element Styles variation Msg
@@ -187,6 +205,7 @@ searchIndividual term employees =
             [ inputText SearchInput
                 [ onInput Search
                 , padding 5
+                , placeholder "Name or email"
                 ]
                 term
             , results
@@ -200,8 +219,8 @@ showEmployee employee =
         , spacing 2
         , onClick <| SelectEmployee employee
         ]
-        [ el EmployeeName [] (text employee.name)
-        , el EmployeeEmail [] (text employee.email)
+        [ el ResultItemEmployeeName [] (text employee.name)
+        , el ResultItemEmployeeEmail [] (text employee.email)
         ]
 
 
@@ -219,7 +238,7 @@ body model =
                     text "Loading..."
 
                 Success data ->
-                    f data
+                    f data model
 
                 Failure error ->
                     text <| toString error
@@ -228,9 +247,6 @@ body model =
                     empty
     in
         case model.report of
-            Nothing ->
-                empty
-
             Just (ForIndividual employee data) ->
                 show (showIndividualReport employee) data
 
@@ -238,6 +254,74 @@ body model =
                 empty
 
 
-showIndividualReport : Employee -> List Enrolment -> Element Styles variation msg
-showIndividualReport employee data =
-    text <| toString data
+employeeImageUrl : Employee -> Maybe String
+employeeImageUrl employee =
+    Maybe.map (\number -> "http://kanlinux/WhosWho/images/" ++ number ++ ".jpg") employee.number
+
+
+enrolledCourses : Dict Id Course -> List Enrolment -> List Course
+enrolledCourses courseMap =
+    List.filter (.status >> (==) Enrolled)
+        >> List.filterMap (.courseId >> flip Dict.get courseMap)
+        >> List.sortBy .name
+
+
+showIndividualReport : Employee -> List Enrolment -> Model -> Element Styles variation msg
+showIndividualReport employee enrolments model =
+    let
+        employeeDetails =
+            column None
+                [ spacing 10 ]
+                [ el EmployeeName [] (text employee.name)
+                , el EmployeeEmail [] (text employee.email)
+                ]
+
+        getCoursesWhere predicate =
+            enrolments
+                |> List.filter predicate
+                |> List.filterMap (.courseId >> flip Dict.get model.courseMap)
+                |> List.sortBy .name
+
+        enrolledCourses =
+            getCoursesWhere (.status >> (==) Enrolled)
+
+        completedCourses =
+            getCoursesWhere
+                (\enrolment ->
+                    case enrolment.status of
+                        Completed _ ->
+                            True
+
+                        _ ->
+                            False
+                )
+
+        notEnrolledCourses =
+            getCoursesWhere (.status >> (==) NotEnrolled)
+
+        showCourses heading courses =
+            if courses == [] then
+                empty
+            else
+                DashboardCard.paddedView DashboardCard
+                    { heading = heading
+                    , body =
+                        courses
+                            |> List.map (\course -> el None [] (text course.name))
+                            |> column CourseList [ spacing 5 ]
+                    }
+
+        -- column None
+        --     [ spacing 10 ]
+        --     [ el ReportHeading [] (text heading)
+        --     , courses
+        --         |> List.map (\course -> el None [] (text course.name))
+        --         |> column CourseList [ spacing 5 ]
+        --     ]
+    in
+        column None
+            [ spacing 15 ]
+            [ employeeDetails
+            , showCourses "Enrolled" enrolledCourses
+            , showCourses "Completed" completedCourses
+            ]

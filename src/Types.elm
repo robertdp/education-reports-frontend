@@ -28,10 +28,6 @@ type alias Url =
     String
 
 
-type alias EmployeeDict =
-    Dict.Dict Email Employee
-
-
 type alias Category =
     { id : Id
     , name : String
@@ -92,6 +88,7 @@ type alias InitialData =
 type alias Model =
     { employees : WebData (List Employee)
     , courses : WebData (List Course)
+    , courseMap : Dict Id Course
     , organisations : WebData (List Organisation)
     , organisationMap : Dict Id Organisation
     , report : Maybe Report
