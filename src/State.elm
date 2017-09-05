@@ -14,7 +14,7 @@ init flags =
     , organisations = NotAsked
     , organisationMap = Dict.empty
     , report = Nothing
-    , sidebar = SearchIndividual
+    , sidebar = SearchOrganisation
     , search = ""
     , api = flags.api
     }
@@ -88,6 +88,28 @@ update msg model =
                 }
                     ! []
 
+        OrganisationReportLoaded organisation data ->
+            let
+                report =
+                    model.report
+                        |> Maybe.map
+                            (\report ->
+                                case report of
+                                    ForOrganisation selectedOrganisation _ ->
+                                        if selectedOrganisation == organisation then
+                                            ForOrganisation organisation data
+                                        else
+                                            report
+
+                                    _ ->
+                                        report
+                            )
+            in
+                { model
+                    | report = report
+                }
+                    ! []
+
         Search value ->
             { model | search = value } ! []
 
@@ -95,11 +117,11 @@ update msg model =
             let
                 sidebar =
                     case model.sidebar of
-                        SearchIndividual ->
-                            SearchAggregate
+                        SearchEmployee ->
+                            SearchOrganisation
 
-                        SearchAggregate ->
-                            SearchIndividual
+                        SearchOrganisation ->
+                            SearchEmployee
             in
                 { model
                     | sidebar = sidebar
@@ -116,15 +138,15 @@ update msg model =
                 ! [ Api.loadEnrolmentData model.api employee ]
 
         SelectCourse course ->
+            model ! []
+
+        SelectOrganisation organisation ->
             { model
                 | report =
-                    ForCourse course Loading
+                    ForOrganisation organisation Loading
                         |> Just
             }
-                ! [ Api.loadCourseData model.api course ]
-
-        SelectOrganisation _ ->
-            model ! []
+                ! [ Api.loadOrganisationData model.api organisation ]
 
         DeselectOrganisation ->
             model ! []

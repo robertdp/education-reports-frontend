@@ -8,6 +8,7 @@ import RemoteData exposing (WebData)
 type Msg
     = InitialDataLoaded (WebData InitialData)
     | IndividualReportLoaded Employee (WebData (List Enrolment))
+    | OrganisationReportLoaded Organisation (WebData (List Enrolment))
     | Search String
     | SelectEmployee Employee
     | SelectCourse Course
@@ -75,7 +76,7 @@ type EnrolmentStatus
 type Report
     = ForIndividual Employee (WebData (List Enrolment))
     | ForCourse Course (WebData (List Enrolment))
-    | ForOrganisation Organisation Course (WebData (List Enrolment))
+    | ForOrganisation Organisation (WebData (List Enrolment))
 
 
 type alias InitialData =
@@ -99,8 +100,8 @@ type alias Model =
 
 
 type Sidebar
-    = SearchIndividual
-    | SearchAggregate
+    = SearchEmployee
+    | SearchOrganisation
 
 
 type alias Flags =

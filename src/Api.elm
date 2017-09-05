@@ -29,14 +29,21 @@ loadEnrolmentData api employee =
             |> Cmd.map (IndividualReportLoaded employee)
 
 
-loadCourseData : Url -> Course -> Cmd Msg
-loadCourseData api course =
-    Cmd.none
+loadOrganisationData : Url -> Organisation -> Cmd Msg
+loadOrganisationData api organisation =
+    let
+        endpoint =
+            api ++ "/organisation?organisation_id=" ++ (Http.encodeUri <| toString organisation.id)
+    in
+        Http.get endpoint (list enrolmentDecoder)
+            |> RemoteData.sendRequest
+            |> Cmd.map (OrganisationReportLoaded organisation)
 
 
-loadCourseAndOrganisationData : Url -> Course -> Organisation -> Cmd Msg
-loadCourseAndOrganisationData url course organisation =
-    Cmd.none
+
+-- loadCourseAndOrganisationData : Url -> Course -> Organisation -> Cmd Msg
+-- loadCourseAndOrganisationData url course organisation =
+--     Cmd.none
 
 
 initialDataDecoder : Decoder InitialData
