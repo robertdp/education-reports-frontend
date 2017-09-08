@@ -4,6 +4,7 @@ import Date
 import Http
 import Json.Decode exposing (..)
 import RemoteData
+import Set
 import Types exposing (..)
 
 
@@ -26,7 +27,7 @@ loadEnrolmentData api employee =
     in
         Http.get endpoint (list enrolmentDecoder)
             |> RemoteData.sendRequest
-            |> Cmd.map (IndividualReportLoaded employee)
+            |> Cmd.map (EmployeeReportLoaded employee)
 
 
 loadOrganisationData : Url -> Organisation -> Cmd Msg
@@ -76,8 +77,8 @@ organisationDecoder =
     map5 Organisation
         (field "id" int)
         (field "name" string)
-        (field "manager_emails" (list string))
-        (field "employee_emails" (list string))
+        (field "manager_emails" (list string |> map Set.fromList))
+        (field "employee_emails" (list string |> map Set.fromList))
         (field "parent_id" (maybe int))
 
 

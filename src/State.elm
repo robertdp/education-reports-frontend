@@ -1,6 +1,7 @@
 module State exposing (..)
 
 import Api
+import Component.Layout as Layout
 import Dict
 import RemoteData exposing (RemoteData(..), WebData)
 import Types exposing (..)
@@ -11,6 +12,7 @@ init flags =
     { courses = NotAsked
     , courseMap = Dict.empty
     , employees = NotAsked
+    , employeeMap = Dict.empty
     , organisations = NotAsked
     , organisationMap = Dict.empty
     , report = Nothing
@@ -23,7 +25,10 @@ init flags =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "Msg" msg of
+    case msg of
+        NoOp ->
+            model ! []
+
         InitialDataLoaded data ->
             let
                 courses =
@@ -43,6 +48,17 @@ update msg model =
                 employees =
                     RemoteData.map .employees data
 
+                employeeMap =
+                    RemoteData.map
+                        (List.foldl
+                            (\employee map ->
+                                Dict.insert employee.email employee map
+                            )
+                            model.employeeMap
+                        )
+                        employees
+                        |> RemoteData.withDefault model.employeeMap
+
                 organisations =
                     RemoteData.map .organisations data
 
@@ -61,21 +77,22 @@ update msg model =
                     | courses = courses
                     , courseMap = courseMap
                     , employees = employees
+                    , employeeMap = employeeMap
                     , organisations = organisations
                     , organisationMap = organisationMap
                 }
                     ! []
 
-        IndividualReportLoaded employee data ->
+        EmployeeReportLoaded employee data ->
             let
                 report =
                     model.report
                         |> Maybe.map
                             (\report ->
                                 case report of
-                                    ForIndividual selectedEmployee _ ->
+                                    ForEmployee selectedEmployee _ ->
                                         if selectedEmployee == employee then
-                                            ForIndividual employee data
+                                            ForEmployee employee data
                                         else
                                             report
 
@@ -132,24 +149,48 @@ update msg model =
         SelectEmployee employee ->
             { model
                 | report =
-                    ForIndividual employee Loading
+                    ForEmployee employee Loading
                         |> Just
             }
-                ! [ Api.loadEnrolmentData model.api employee ]
-
-        SelectCourse course ->
-            model ! []
+                ! [ Api.loadEnrolmentData model.api employee
+                  , Layout.scrollContentToTop
+                  ]
 
         SelectOrganisation organisation ->
-            { model
-                | report =
-                    ForOrganisation organisation Loading
-                        |> Just
-            }
-                ! [ Api.loadOrganisationData model.api organisation ]
+            let
+                newReport =
+                    case model.report of
+                        Just (ForCourse _ organisation data) ->
+                            ForOrganisation organisation data
 
-        DeselectOrganisation ->
-            model ! []
+                        _ ->
+                            ForOrganisation organisation Loading
+            in
+                { model
+                    | report =
+                        Just newReport
+                }
+                    ! [ Api.loadOrganisationData model.api organisation
+                      , Layout.scrollContentToTop
+                      ]
+
+        SelectCourse course ->
+            let
+                newModel =
+                    case model.report of
+                        Just (ForOrganisation organisation (Success data)) ->
+                            { model
+                                | report =
+                                    ForCourse course organisation (Success data)
+                                        |> Just
+                            }
+
+                        _ ->
+                            model
+            in
+                newModel
+                    ! [ Layout.scrollContentToTop
+                      ]
 
 
 subscriptions : Model -> Sub Msg

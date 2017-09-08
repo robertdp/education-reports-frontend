@@ -4,15 +4,12 @@ import Color
 import Element
 import Element.Attributes as Attributes
 import Element.Events as Events
-import Http exposing (Part)
-import RemoteData exposing (RemoteData(..), WebData)
 import Style
 import Style.Background as Background
 import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
 import Style.Shadow as Shadow
-import Types exposing (..)
 
 
 type Style
@@ -28,12 +25,13 @@ styles style =
         [ Border.none
         , Color.text Color.white
         , Border.rounded 3
+        , Font.lineHeight 1.5
         , Font.size 16
         , Style.shadows
             [ Shadow.text { offset = ( 1, 1 ), blur = 0.5, color = Color.rgba 0 0 0 0.6 }
             ]
         , Background.gradient 0
-            [ Background.step <| Color.rgb 60 120 216
+            [ Background.step <| Color.rgb 59 119 219
             , Background.step <| Color.rgb 66 133 244
             ]
         , Style.cursor "pointer"

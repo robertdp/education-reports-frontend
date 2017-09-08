@@ -38,10 +38,11 @@ styles style =
         , Color.border Color.darkGrey
         ]
     , Style.style (style ResultList)
-        [ Style.prop "overflow-x" "hidden" ]
+        [ Style.prop "overflow-x" "hidden"
+        , Font.lineHeight 1.5
+        ]
     , Style.style (style ResultItem)
-        [ Font.noWrap
-        , Style.cursor "pointer"
+        [ Style.cursor "pointer"
         , Style.hover
             [ Color.background Color.lightYellow
             ]
@@ -64,11 +65,15 @@ view style model =
         filterOrganisations =
             case String.toLower model.search of
                 "" ->
-                    identity
+                    Utils.predicateFilterAll
+                        [ .parentId >> (==) Nothing ]
 
                 term ->
-                    Utils.predicateFilterAny
-                        [ .name >> String.toLower >> String.contains term ]
+                    Utils.predicateFilterAll
+                        [ -- .parentId >> (==) Nothing
+                          -- ,
+                          .name >> String.toLower >> String.contains term
+                        ]
 
         results =
             case model.organisations of
@@ -93,25 +98,26 @@ view style model =
     in
         Element.column (style None)
             [ Attributes.padding 5
-            , Attributes.spacing 5
             , Attributes.height <| Attributes.fill 1
             ]
-            [ Element.inputText (style SearchInput)
-                [ Events.onInput Search
-                , Attributes.padding 5
-                , Attributes.placeholder "Organisation name"
-                ]
-                model.search
-            , results
+            [ --  Element.inputText (style SearchInput)
+              --     [ Events.onInput Search
+              --     , Attributes.padding 5
+              --     , Attributes.placeholder "Organisation name"
+              --     ]
+              --     model.search
+              -- ,
+              results
             ]
 
 
 showOrganisation : (Style -> style) -> Organisation -> Element.Element style variation Msg
 showOrganisation style organisation =
-    Element.column (style ResultItem)
-        [ Attributes.padding 5
-        , Attributes.spacing 2
+    Element.el (style ResultItem)
+        [ Attributes.paddingXY 12 8
         , Events.onClick <| SelectOrganisation organisation
         ]
-        [ Element.el (style <| ResultItemProp OrganisationName) [] (Element.text organisation.name)
-        ]
+        (Element.el (style <| ResultItemProp OrganisationName)
+            []
+            (Element.text organisation.name)
+        )

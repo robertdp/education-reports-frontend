@@ -1,6 +1,8 @@
 module Component.Layout exposing (..)
 
 import Color
+import Dom
+import Dom.Scroll
 import Element
 import Element.Attributes as Attributes
 import Style
@@ -8,6 +10,8 @@ import Style.Background as Background
 import Style.Color as Color
 import Style.Font as Font
 import Style.Shadow as Shadow
+import Task
+import Types exposing (..)
 
 
 type Style
@@ -68,11 +72,21 @@ view config model =
                 ]
                 [ config.header model ]
             , Element.el (config.style Content)
-                [ Attributes.height <| Attributes.fill 1 ]
+                [ Attributes.height <| Attributes.fill 1
+                , Attributes.yScrollbar
+                , Attributes.id "layout-content"
+                ]
               <|
                 Element.el (config.style None)
-                    [ Attributes.paddingXY 32 24 ]
+                    [ Attributes.paddingXY 32 24
+                    ]
                 <|
                     config.content model
             ]
         ]
+
+
+scrollContentToTop : Cmd Msg
+scrollContentToTop =
+    Dom.Scroll.toTop "layout-content"
+        |> Task.attempt (always NoOp)

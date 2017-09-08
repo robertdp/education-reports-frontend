@@ -35,14 +35,15 @@ styles style =
         [ Border.all 1
         , Border.solid
         , Color.text Color.darkCharcoal
-        , Font.size 20
+        , Font.size 18
         , Color.border Color.darkGrey
         ]
     , Style.style (style ResultList)
-        [ Style.prop "overflow-x" "hidden" ]
+        [ Font.lineHeight 1.5
+        , Style.prop "overflow-x" "hidden"
+        ]
     , Style.style (style ResultItem)
-        [ Font.noWrap
-        , Style.cursor "pointer"
+        [ Style.cursor "pointer"
         , Style.hover
             [ Color.background Color.lightYellow
             ]
@@ -67,7 +68,7 @@ view :
 view style model =
     let
         filterEmployees =
-            case String.toLower model.search of
+            case (String.trim >> String.toLower) model.search of
                 "" ->
                     identity
 
@@ -116,7 +117,7 @@ view style model =
 showEmployee : (Style -> style) -> Employee -> Element.Element style variation Msg
 showEmployee style employee =
     Element.column (style ResultItem)
-        [ Attributes.padding 5
+        [ Attributes.paddingXY 12 8
         , Attributes.spacing 2
         , Events.onClick <| SelectEmployee employee
         ]

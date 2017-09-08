@@ -3,17 +3,18 @@ module Types exposing (..)
 import Date exposing (Date)
 import Dict exposing (Dict)
 import RemoteData exposing (WebData)
+import Set exposing (Set)
 
 
 type Msg
-    = InitialDataLoaded (WebData InitialData)
-    | IndividualReportLoaded Employee (WebData (List Enrolment))
+    = NoOp
+    | InitialDataLoaded (WebData InitialData)
+    | EmployeeReportLoaded Employee (WebData (List Enrolment))
     | OrganisationReportLoaded Organisation (WebData (List Enrolment))
     | Search String
     | SelectEmployee Employee
-    | SelectCourse Course
     | SelectOrganisation Organisation
-    | DeselectOrganisation
+    | SelectCourse Course
     | ToggleSidebarMode
 
 
@@ -54,8 +55,8 @@ type alias Employee =
 type alias Organisation =
     { id : Id
     , name : String
-    , managerEmails : List Email
-    , employeeEmails : List Email
+    , managerEmails : Set Email
+    , employeeEmails : Set Email
     , parentId : Maybe Id
     }
 
@@ -74,9 +75,9 @@ type EnrolmentStatus
 
 
 type Report
-    = ForIndividual Employee (WebData (List Enrolment))
-    | ForCourse Course (WebData (List Enrolment))
+    = ForEmployee Employee (WebData (List Enrolment))
     | ForOrganisation Organisation (WebData (List Enrolment))
+    | ForCourse Course Organisation (WebData (List Enrolment))
 
 
 type alias InitialData =
@@ -88,6 +89,7 @@ type alias InitialData =
 
 type alias Model =
     { employees : WebData (List Employee)
+    , employeeMap : Dict Email Employee
     , courses : WebData (List Course)
     , courseMap : Dict Id Course
     , organisations : WebData (List Organisation)
