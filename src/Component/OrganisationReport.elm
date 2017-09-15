@@ -1,7 +1,7 @@
 module Component.OrganisationReport exposing (..)
 
 import Color
-import Component.DashboardCard as DashboardCard
+import Component.CardBlock as CardBlock
 import Element
 import Element.Attributes as Attributes
 import Element.Events as Events
@@ -10,6 +10,15 @@ import Style
 import Style.Color as Color
 import Style.Font as Font
 import Types exposing (..)
+
+
+type alias Model a =
+    { a
+        | organisation : Organisation
+        , enrolments : List Enrolment
+        , courses : List Course
+        , organisations : List Organisation
+    }
 
 
 type Style
@@ -21,7 +30,7 @@ type Style
     | CourseSummaryListItem
     | CourseSummaryStars
     | CourseSummaryCompleted
-    | DashboardCardStyle DashboardCard.Style
+    | CardBlockStyle CardBlock.Style
 
 
 styles : (Style -> style) -> List (Style.Style style variation)
@@ -51,18 +60,12 @@ styles style =
         [ Font.alignRight
         ]
     ]
-        ++ DashboardCard.styles (style << DashboardCardStyle)
+        ++ CardBlock.styles (style << CardBlockStyle)
 
 
 view :
     (Style -> style)
-    ->
-        { a
-            | courses : List Course
-            , enrolments : List Enrolment
-            , organisation : Organisation
-            , organisations : List Organisation
-        }
+    -> Model a
     -> Element.Element style variation Msg
 view style model =
     let
@@ -103,8 +106,8 @@ view style model =
                     Element.empty
 
                 children ->
-                    DashboardCard.view
-                        { style = style << DashboardCardStyle
+                    CardBlock.view
+                        { style = style << CardBlockStyle
                         , header =
                             always <|
                                 Element.row
@@ -185,8 +188,8 @@ view style model =
                     Element.empty
 
                 _ ->
-                    DashboardCard.view
-                        { style = style << DashboardCardStyle
+                    CardBlock.view
+                        { style = style << CardBlockStyle
                         , header =
                             always <|
                                 Element.row (style None)

@@ -49,10 +49,11 @@ loadOrganisationData api organisation =
 
 initialDataDecoder : Decoder InitialData
 initialDataDecoder =
-    map3 InitialData
+    map4 InitialData
         (field "courses" (list courseDecoder |> map (List.sortBy .name)))
         (field "employees" (list employeeDecoder |> map (List.sortBy .name)))
         (field "organisations" (list organisationDecoder |> map (List.sortBy .name)))
+        (field "organisation_summaries" (list organisationSummaryDecoder))
 
 
 courseDecoder : Decoder Course
@@ -104,3 +105,13 @@ enrolmentDecoder =
                 )
             )
         )
+
+
+organisationSummaryDecoder : Decoder OrganisationSummary
+organisationSummaryDecoder =
+    map5 OrganisationSummary
+        (field "organisation_id" int)
+        (field "course_id" int)
+        (field "member_count" int)
+        (field "enrolled" int)
+        (field "completed" int)

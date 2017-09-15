@@ -1,7 +1,7 @@
 module Component.EmployeeReport exposing (..)
 
 import Color
-import Component.DashboardCard as DashboardCard
+import Component.CardBlock as CardBlock
 import Dict
 import Element
 import Element.Attributes as Attributes
@@ -9,6 +9,7 @@ import Style
 import Style.Color as Color
 import Style.Font as Font
 import Types exposing (..)
+import Date
 
 
 type Style
@@ -16,7 +17,7 @@ type Style
     | EmployeeName
     | EmployeeEmail
     | CourseList
-    | DashboardCardStyle DashboardCard.Style
+    | CardBlockStyle CardBlock.Style
 
 
 styles : (Style -> style) -> List (Style.Style style variation)
@@ -30,7 +31,7 @@ styles style =
         [ Color.text Color.darkCharcoal
         ]
     ]
-        ++ DashboardCard.styles (style << DashboardCardStyle)
+        ++ CardBlock.styles (style << CardBlockStyle)
 
 
 view :
@@ -50,6 +51,14 @@ view style model =
                 [ Element.el (style EmployeeName) [] (Element.text model.employee.name)
                 , Element.el (style EmployeeEmail) [] (Element.text model.employee.email)
                 ]
+
+        courseEnrolmentStatuses =
+            model.enrolments
+                |> List.foldl (\enrolment store -> Dict.insert enrolment.courseId enrolment.status store) Dict.empty
+
+        getCourseEnrolment course =
+            Dict.get course.id courseEnrolmentStatuses
+                |> Maybe.withDefault NotEnrolled
 
         getCoursesWhere predicate =
             model.enrolments
@@ -74,27 +83,50 @@ view style model =
         notEnrolledCourses =
             getCoursesWhere (.status >> (==) NotEnrolled)
 
-        showCourses heading courses =
+        showCourses f heading courses =
             if courses == [] then
                 Element.empty
             else
-                DashboardCard.view
-                    { style = style << DashboardCardStyle
+                CardBlock.view
+                    { style = style << CardBlockStyle
                     , header = always <| Element.text heading
                     , content =
                         List.map
                             (\course ->
-                                Element.el (style None)
-                                    [ Attributes.paddingXY 12 8 ]
-                                    (Element.text course.name)
+                                Element.row (style None)
+                                    [ Attributes.paddingXY 12 8
+                                    , Attributes.justify
+                                    ]
+                                    (f course)
                             )
                             >> Element.column (style CourseList) [ Attributes.padding 5 ]
                     }
                     courses
+
+        getFormattedCompletionDate course =
+            case getCourseEnrolment course of
+                Completed date ->
+                    [ Date.dayOfWeek date |> toString
+                    , Date.day date |> toString
+                    , Date.month date |> toString
+                    , Date.year date |> toString
+                    ]
+                        |> String.join " "
+                        |> Element.text
+
+                _ ->
+                    Element.empty
     in
         Element.column (style None)
             [ Attributes.spacing 16 ]
             [ employeeDetails
-            , showCourses ((toString << List.length) enrolledCourses ++ " enrolled") enrolledCourses
-            , showCourses ((toString << List.length) completedCourses ++ " completed") completedCourses
+            , showCourses
+                (\course ->
+                    [ course.name |> Element.text |> Element.el (style None) []
+                    , getFormattedCompletionDate course |> Element.el (style None) []
+                    ]
+                )
+                ((toString << List.length) completedCourses ++ " completed")
+                completedCourses
+            , showCourses (.name >> Element.text >> List.singleton) ((toString << List.length) enrolledCourses ++ " enrolled") enrolledCourses
             ]

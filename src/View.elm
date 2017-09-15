@@ -1,13 +1,14 @@
 module View exposing (..)
 
 import Component.Button as Button
-import Component.CourseReport as CourseReport
-import Component.DashboardCard as DashboardCard
+import Component.OrganisationCourseReport as OrganisationCourseReport
+import Component.CardBlock as CardBlock
 import Component.EmployeeReport as EmployeeReport
 import Component.EmployeeSidebar as EmployeeSidebar
 import Component.Layout as Layout
 import Component.OrganisationReport as OrganisationReport
-import Component.OrganisationSidebar as OrganisationSidebar exposing (showOrganisation)
+import Component.OrganisationSidebar as OrganisationSidebar
+import Component.OrganisationSummaryReport as OrganisationSummaryReport
 import Element exposing (Element, button, column, el, empty, inputText, row, text, viewport)
 import Element.Attributes exposing (center, fill, height, padding, paddingXY, placeholder, px, scrollbars, spacing, verticalCenter, width, yScrollbar)
 import Html
@@ -19,13 +20,14 @@ import Types exposing (..)
 type Style
     = None
     | ButtonStyle Button.Style
-    | CourseReportStyle CourseReport.Style
-    | DashboardCardStyle DashboardCard.Style
+    | OrganisationCourseReportStyle OrganisationCourseReport.Style
+    | CardBlockStyle CardBlock.Style
     | EmployeeReportStyle EmployeeReport.Style
     | EmployeeSidebarStyle EmployeeSidebar.Style
     | LayoutStyle Layout.Style
     | OrganisationReportStyle OrganisationReport.Style
     | OrganisationSidebarStyle OrganisationSidebar.Style
+    | OrganisationSummaryReportStyle OrganisationSummaryReport.Style
 
 
 stylesheet : Style.StyleSheet Style variation
@@ -35,13 +37,14 @@ stylesheet =
             []
         ]
             ++ Button.styles ButtonStyle
-            ++ CourseReport.styles CourseReportStyle
-            ++ DashboardCard.styles DashboardCardStyle
+            ++ OrganisationCourseReport.styles OrganisationCourseReportStyle
+            ++ CardBlock.styles CardBlockStyle
             ++ EmployeeReport.styles EmployeeReportStyle
             ++ EmployeeSidebar.styles EmployeeSidebarStyle
             ++ Layout.styles LayoutStyle
             ++ OrganisationReport.styles OrganisationReportStyle
             ++ OrganisationSidebar.styles OrganisationSidebarStyle
+            ++ OrganisationSummaryReport.styles OrganisationSummaryReportStyle
 
 
 view : Model -> Html.Html Msg
@@ -70,10 +73,24 @@ sidebar model =
         sidebarView =
             case model.sidebar of
                 SearchEmployee ->
-                    EmployeeSidebar.view EmployeeSidebarStyle model
+                    model.employees
+                        |> RemoteData.map
+                            (\employees ->
+                                EmployeeSidebar.view EmployeeSidebarStyle
+                                    { employees = employees
+                                    , search = model.search
+                                    }
+                            )
+                        |> viewRemoteData
 
                 SearchOrganisation ->
-                    OrganisationSidebar.view OrganisationSidebarStyle model
+                    model.organisations
+                        |> RemoteData.map
+                            (\organisations ->
+                                OrganisationSidebar.view OrganisationSidebarStyle
+                                    { organisations = organisations }
+                            )
+                        |> viewRemoteData
     in
         column None
             [ height <| fill 1 ]
@@ -90,67 +107,78 @@ sidebar model =
             ]
 
 
+viewRemoteData data =
+    case data of
+        Loading ->
+            text "Loading..."
+
+        Success y ->
+            y
+
+        Failure error ->
+            text <| toString error
+
+        NotAsked ->
+            empty
+
+
 content : Model -> Element Style variation Msg
 content model =
-    let
-        showContent x =
-            case x of
-                Loading ->
-                    text "Loading..."
+    case model.report of
+        EmployeeReport employee data ->
+            RemoteData.map
+                (\enrolments ->
+                    EmployeeReport.view EmployeeReportStyle
+                        { courses = model.courseMap
+                        , employee = employee
+                        , enrolments = enrolments
+                        }
+                )
+                data
+                |> viewRemoteData
 
-                Success y ->
-                    y
+        OrganisationReport organisation data ->
+            RemoteData.map3
+                (\courses enrolments organisations ->
+                    OrganisationReport.view OrganisationReportStyle
+                        { courses = courses
+                        , enrolments = enrolments
+                        , organisations = organisations
+                        , organisation = organisation
+                        }
+                )
+                model.courses
+                data
+                model.organisations
+                |> viewRemoteData
 
-                Failure error ->
-                    text <| toString error
+        OrganisationCourseReport organisation course data ->
+            RemoteData.map
+                (\enrolments ->
+                    OrganisationCourseReport.view OrganisationCourseReportStyle
+                        { course = course
+                        , employees = model.employeeMap
+                        , enrolments = List.filter (\enrolment -> enrolment.courseId == course.id) enrolments
+                        , organisation = organisation
+                        , organisations = model.organisationMap
+                        }
+                )
+                data
+                |> viewRemoteData
 
-                NotAsked ->
-                    empty
-    in
-        case model.report of
-            Just (ForEmployee employee data) ->
-                RemoteData.map
-                    (\enrolments ->
-                        EmployeeReport.view EmployeeReportStyle
-                            { courses = model.courseMap
-                            , employee = employee
-                            , enrolments = enrolments
-                            }
-                    )
-                    data
-                    |> showContent
-
-            Just (ForOrganisation organisation data) ->
-                RemoteData.map3
-                    (\courses enrolments organisations ->
-                        OrganisationReport.view OrganisationReportStyle
-                            { courses = courses
-                            , enrolments = enrolments
-                            , organisations = organisations
-                            , organisation = organisation
-                            }
-                    )
-                    model.courses
-                    data
-                    model.organisations
-                    |> showContent
-
-            Just (ForCourse course organisation data) ->
-                RemoteData.map
-                    (\enrolments ->
-                        CourseReport.view CourseReportStyle
-                            { course = course
-                            , employees = model.employeeMap
-                            , enrolments = List.filter (\enrolment -> enrolment.courseId == course.id) enrolments
-                            , organisation = organisation
-                            , organisations = model.organisationMap
-                            }
-                    )
-                    data
-                    |> showContent
-
-            _ ->
-                empty
+        SummaryReport ->
+            RemoteData.map3
+                (\organisations courses summaries ->
+                    OrganisationSummaryReport.view OrganisationSummaryReportStyle
+                        { courses = courses
+                        , organisations = organisations
+                        , summaries = model.organisationSummaryMap
+                        }
+                )
+                model.organisations
+                model.courses
+                model.organisationSummaries
+                |> viewRemoteData
 
 
 employeeImageUrl : Employee -> Maybe String

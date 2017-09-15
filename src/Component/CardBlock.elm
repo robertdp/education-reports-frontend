@@ -1,4 +1,4 @@
-module Component.DashboardCard exposing (..)
+module Component.CardBlock exposing (..)
 
 import Color
 import Element

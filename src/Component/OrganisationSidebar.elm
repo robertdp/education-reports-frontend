@@ -10,7 +10,6 @@ import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
 import Types exposing (..)
-import Utils
 
 
 type Style
@@ -56,59 +55,40 @@ view :
     (Style -> style)
     ->
         { a
-            | search : String
-            , organisations : WebData (List Organisation)
+            | organisations : List Organisation
         }
     -> Element.Element style variation Msg
 view style model =
     let
-        filterOrganisations =
-            case String.toLower model.search of
-                "" ->
-                    Utils.predicateFilterAll
-                        [ .parentId >> (==) Nothing ]
-
-                term ->
-                    Utils.predicateFilterAll
-                        [ -- .parentId >> (==) Nothing
-                          -- ,
-                          .name >> String.toLower >> String.contains term
-                        ]
-
         results =
-            case model.organisations of
-                NotAsked ->
-                    Element.empty
-
-                Loading ->
-                    Element.text "Loading"
-
-                Failure error ->
-                    Element.text <| toString error
-
-                Success organisations ->
-                    organisations
-                        |> filterOrganisations
-                        |> List.take 100
-                        |> List.map (showOrganisation style)
-                        |> Element.column (style ResultList)
-                            [ Attributes.yScrollbar
-                            , Attributes.height <| Attributes.fill 1
-                            ]
+            model.organisations
+                |> List.filter (.parentId >> (==) Nothing)
+                |> List.take 100
+                |> List.map (showOrganisation style)
+                |> (++) [ organisationSummaryReport style ]
+                |> Element.column (style ResultList)
+                    [ Attributes.yScrollbar
+                    , Attributes.height <| Attributes.fill 1
+                    ]
     in
         Element.column (style None)
             [ Attributes.padding 5
             , Attributes.height <| Attributes.fill 1
             ]
-            [ --  Element.inputText (style SearchInput)
-              --     [ Events.onInput Search
-              --     , Attributes.padding 5
-              --     , Attributes.placeholder "Organisation name"
-              --     ]
-              --     model.search
-              -- ,
-              results
+            [ results
             ]
+
+
+organisationSummaryReport : (Style -> style) -> Element.Element style variation Msg
+organisationSummaryReport style =
+    Element.el (style ResultItem)
+        [ Attributes.paddingXY 12 8
+        , Events.onClick <| SelectOrganisationSummary
+        ]
+        (Element.el (style <| ResultItemProp OrganisationName)
+            []
+            (Element.text "All")
+        )
 
 
 showOrganisation : (Style -> style) -> Organisation -> Element.Element style variation Msg

@@ -2,6 +2,8 @@ module State exposing (..)
 
 import Api
 import Component.Layout as Layout
+import Data.Record as Record
+import Data.Recursive as Recursive
 import Dict
 import RemoteData exposing (RemoteData(..), WebData)
 import Types exposing (..)
@@ -15,7 +17,9 @@ init flags =
     , employeeMap = Dict.empty
     , organisations = NotAsked
     , organisationMap = Dict.empty
-    , report = Nothing
+    , organisationSummaries = NotAsked
+    , organisationSummaryMap = Dict.empty
+    , report = SummaryReport
     , sidebar = SearchOrganisation
     , search = ""
     , api = flags.api
@@ -35,43 +39,33 @@ update msg model =
                     RemoteData.map .courses data
 
                 courseMap =
-                    RemoteData.map
-                        (List.foldl
-                            (\course map ->
-                                Dict.insert course.id course map
-                            )
-                            model.courseMap
-                        )
-                        courses
+                    courses
+                        |> RemoteData.map (Record.toDict .id)
                         |> RemoteData.withDefault model.courseMap
 
                 employees =
                     RemoteData.map .employees data
 
                 employeeMap =
-                    RemoteData.map
-                        (List.foldl
-                            (\employee map ->
-                                Dict.insert employee.email employee map
-                            )
-                            model.employeeMap
-                        )
-                        employees
+                    employees
+                        |> RemoteData.map (Record.toDict .email)
                         |> RemoteData.withDefault model.employeeMap
 
                 organisations =
                     RemoteData.map .organisations data
 
                 organisationMap =
-                    RemoteData.map
-                        (List.foldl
-                            (\organisation map ->
-                                Dict.insert organisation.id organisation map
-                            )
-                            model.organisationMap
-                        )
-                        organisations
+                    organisations
+                        |> RemoteData.map (Record.toDict .id)
                         |> RemoteData.withDefault model.organisationMap
+
+                organisationSummaries =
+                    RemoteData.map .organisationSummaries data
+
+                organisationSummaryMap =
+                    organisationSummaries
+                        |> RemoteData.map (Record.toDict2 .organisationId .courseId)
+                        |> RemoteData.withDefault model.organisationSummaryMap
             in
                 { model
                     | courses = courses
@@ -80,25 +74,23 @@ update msg model =
                     , employeeMap = employeeMap
                     , organisations = organisations
                     , organisationMap = organisationMap
+                    , organisationSummaries = organisationSummaries
+                    , organisationSummaryMap = organisationSummaryMap
                 }
                     ! []
 
         EmployeeReportLoaded employee data ->
             let
                 report =
-                    model.report
-                        |> Maybe.map
-                            (\report ->
-                                case report of
-                                    ForEmployee selectedEmployee _ ->
-                                        if selectedEmployee == employee then
-                                            ForEmployee employee data
-                                        else
-                                            report
+                    case model.report of
+                        EmployeeReport selectedEmployee _ ->
+                            if selectedEmployee == employee then
+                                EmployeeReport employee data
+                            else
+                                model.report
 
-                                    _ ->
-                                        report
-                            )
+                        _ ->
+                            model.report
             in
                 { model
                     | report = report
@@ -108,19 +100,15 @@ update msg model =
         OrganisationReportLoaded organisation data ->
             let
                 report =
-                    model.report
-                        |> Maybe.map
-                            (\report ->
-                                case report of
-                                    ForOrganisation selectedOrganisation _ ->
-                                        if selectedOrganisation == organisation then
-                                            ForOrganisation organisation data
-                                        else
-                                            report
+                    case model.report of
+                        OrganisationReport selectedOrganisation _ ->
+                            if selectedOrganisation == organisation then
+                                OrganisationReport organisation data
+                            else
+                                model.report
 
-                                    _ ->
-                                        report
-                            )
+                        _ ->
+                            model.report
             in
                 { model
                     | report = report
@@ -142,15 +130,13 @@ update msg model =
             in
                 { model
                     | sidebar = sidebar
-                    , search = ""
                 }
                     ! []
 
         SelectEmployee employee ->
             { model
                 | report =
-                    ForEmployee employee Loading
-                        |> Just
+                    EmployeeReport employee Loading
             }
                 ! [ Api.loadEnrolmentData model.api employee
                   , Layout.scrollContentToTop
@@ -160,15 +146,15 @@ update msg model =
             let
                 newReport =
                     case model.report of
-                        Just (ForCourse _ organisation data) ->
-                            ForOrganisation organisation data
+                        OrganisationCourseReport organisation _ data ->
+                            OrganisationReport organisation data
 
                         _ ->
-                            ForOrganisation organisation Loading
+                            OrganisationReport organisation Loading
             in
                 { model
                     | report =
-                        Just newReport
+                        newReport
                 }
                     ! [ Api.loadOrganisationData model.api organisation
                       , Layout.scrollContentToTop
@@ -178,11 +164,10 @@ update msg model =
             let
                 newModel =
                     case model.report of
-                        Just (ForOrganisation organisation (Success data)) ->
+                        OrganisationReport organisation data ->
                             { model
                                 | report =
-                                    ForCourse course organisation (Success data)
-                                        |> Just
+                                    OrganisationCourseReport organisation course data
                             }
 
                         _ ->
@@ -191,6 +176,54 @@ update msg model =
                 newModel
                     ! [ Layout.scrollContentToTop
                       ]
+
+        DeselectCourse ->
+            let
+                newModel =
+                    case model.report of
+                        OrganisationCourseReport organisation _ data ->
+                            { model
+                                | report =
+                                    OrganisationReport organisation data
+                            }
+
+                        _ ->
+                            model
+            in
+                newModel
+                    ! [ Layout.scrollContentToTop
+                      ]
+
+        SelectParentOrganisation ->
+            let
+                getParent organisation =
+                    Recursive.getParent model.organisationMap organisation
+                        |> Maybe.withDefault organisation
+
+                newModel =
+                    case model.report of
+                        OrganisationReport organisation data ->
+                            { model
+                                | report =
+                                    OrganisationReport (getParent organisation) data
+                            }
+
+                        OrganisationCourseReport organisation course data ->
+                            { model
+                                | report =
+                                    OrganisationCourseReport (getParent organisation) course data
+                            }
+
+                        _ ->
+                            model
+            in
+                newModel
+                    ! [ Layout.scrollContentToTop
+                      ]
+
+        SelectOrganisationSummary ->
+            { model | report = SummaryReport }
+                ! [ Layout.scrollContentToTop ]
 
 
 subscriptions : Model -> Sub Msg

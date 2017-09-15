@@ -1,8 +1,9 @@
-module Component.CourseReport exposing (..)
+module Component.OrganisationCourseReport exposing (..)
 
 import Color
-import Component.DashboardCard as DashboardCard
+import Component.CardBlock as CardBlock
 import Data.Recursive as Recursive
+import Date
 import Dict
 import Element
 import Element.Attributes as Attributes
@@ -13,7 +14,6 @@ import Style.Background as Background
 import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
-import Style.Shadow as Shadow
 import Types exposing (..)
 
 
@@ -22,10 +22,13 @@ type Style
     | CourseName
     | EmployeeList
     | EmployeeListItem
+    | EmployeeName
+    | EmployeeEmail
+    | EnrolmentCompletionDate
     | BackButton
     | BackButtonIcon
     | BackButtonText
-    | DashboardCardStyle DashboardCard.Style
+    | CardBlockStyle CardBlock.Style
 
 
 styles : (Style -> style) -> List (Style.Style style variation)
@@ -41,15 +44,18 @@ styles style =
             [ Color.background Color.lightGray
             ]
         ]
+    , Style.style (style EmployeeName)
+        []
+    , Style.style (style EmployeeEmail)
+        []
+    , Style.style (style EnrolmentCompletionDate)
+        [ Font.alignRight
+        ]
     , Style.style (style BackButton)
         [ Border.none
         , Color.text Color.darkCharcoal
         , Border.rounded 3
         , Font.size 16
-
-        -- , Style.shadows
-        --     [ Shadow.text { offset = ( 1, 1 ), blur = 0.5, color = Color.rgba 0 0 0 0.6 }
-        --     ]
         , Background.gradient 0
             [ Background.step <| Color.rgb 205 208 211
             , Background.step <| Color.rgb 230 232 234
@@ -63,7 +69,7 @@ styles style =
         [ Font.size 16
         ]
     ]
-        ++ DashboardCard.styles (style << DashboardCardStyle)
+        ++ CardBlock.styles (style << CardBlockStyle)
 
 
 view :
@@ -118,19 +124,41 @@ view style model =
                                 False
                     )
 
-        showMemberEnrolments heading employees =
+        -- showMemberEnrolments heading employees =
+        --     if employees == [] then
+        --         Element.empty
+        --     else
+        --         CardBlock.view
+        --             { style = style << CardBlockStyle
+        --             , header = always <| Element.text heading
+        --             , content =
+        --                 List.map
+        --                     (\employee ->
+        --                         Element.el (style EmployeeListItem)
+        --                             [ Attributes.paddingXY 12 8 ]
+        --                             (Element.text employee.name)
+        --                     )
+        --                     >> Element.column (style EmployeeList)
+        --                         [ Attributes.padding 5
+        --                         ]
+        --             }
+        --             employees
+        showMemberEnrolments f heading employees =
             if employees == [] then
                 Element.empty
             else
-                DashboardCard.view
-                    { style = style << DashboardCardStyle
+                CardBlock.view
+                    { style = style << CardBlockStyle
                     , header = always <| Element.text heading
                     , content =
                         List.map
                             (\employee ->
-                                Element.el (style EmployeeListItem)
-                                    [ Attributes.paddingXY 12 8 ]
-                                    (Element.text employee.name)
+                                Element.row (style EmployeeListItem)
+                                    [ Attributes.paddingXY 12 8
+                                    , Attributes.width <| Attributes.fill 1
+                                    , Attributes.minWidth <| Attributes.px 670
+                                    ]
+                                    (f employee)
                             )
                             >> Element.column (style EmployeeList)
                                 [ Attributes.padding 5
@@ -162,12 +190,75 @@ view style model =
                         ]
                         (Element.text <| "Back to " ++ model.organisation.name)
                     ]
+
+        getFormattedCompletionDate employee =
+            case getMemberEnrolment employee of
+                Completed date ->
+                    [ Date.dayOfWeek date |> toString
+                    , Date.day date |> toString
+                    , Date.month date |> toString
+                    , Date.year date |> toString
+                    ]
+                        |> String.join " "
+                        |> Element.text
+
+                _ ->
+                    Element.empty
     in
         Element.column (style None)
             [ Attributes.spacing 16 ]
             [ backButton
             , courseDetails
-            , showMemberEnrolments "Completed" completedMembers
-            , showMemberEnrolments "Enrolled" enrolledMembers
-            , showMemberEnrolments "Not enrolled" notEnrolledMembers
+            , showMemberEnrolments
+                (\employee ->
+                    [ employee.name
+                        |> Element.text
+                        |> Element.el (style EmployeeName)
+                            [ Attributes.width <| Attributes.percent 40
+                            ]
+                    , employee.email
+                        |> Element.text
+                        |> Element.el (style EmployeeEmail)
+                            [ Attributes.width <| Attributes.percent 40
+                            ]
+                    , getFormattedCompletionDate employee
+                        |> Element.el (style EnrolmentCompletionDate)
+                            [ Attributes.width <| Attributes.percent 20
+                            ]
+                    ]
+                )
+                "Completed"
+                completedMembers
+            , showMemberEnrolments
+                (\employee ->
+                    [ employee.name
+                        |> Element.text
+                        |> Element.el (style EmployeeName)
+                            [ Attributes.width <| Attributes.percent 40
+                            ]
+                    , employee.email
+                        |> Element.text
+                        |> Element.el (style EmployeeEmail)
+                            [ Attributes.width <| Attributes.percent 60
+                            ]
+                    ]
+                )
+                "Enrolled"
+                enrolledMembers
+            , showMemberEnrolments
+                (\employee ->
+                    [ employee.name
+                        |> Element.text
+                        |> Element.el (style EmployeeName)
+                            [ Attributes.width <| Attributes.percent 40
+                            ]
+                    , employee.email
+                        |> Element.text
+                        |> Element.el (style EmployeeEmail)
+                            [ Attributes.width <| Attributes.percent 60
+                            ]
+                    ]
+                )
+                "Not enrolled"
+                notEnrolledMembers
             ]
