@@ -1,18 +1,10 @@
 module Component.OrganisationSummaryReport exposing (..)
 
 import Color
-import Component.CardBlock as CardBlock
-import Data.Recursive as Recursive
-import Date
 import Dict
 import Element
 import Element.Attributes as Attributes
-import Element.Events as Events
-import Set
 import Style
-import Style.Background as Background
-import Style.Border as Border
-import Style.Color as Color
 import Style.Font as Font
 import Types exposing (..)
 
@@ -38,8 +30,6 @@ styles style =
         ]
     , Style.style (style OrganisationNameContainer)
         [ Font.noWrap
-
-        -- , Style.rotate (-pi / 2)
         ]
     , Style.style (style CourseName)
         [ Font.noWrap
