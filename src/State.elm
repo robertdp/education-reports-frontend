@@ -6,13 +6,16 @@ import Data.Record as Record
 import Data.Recursive as Recursive
 import Dict
 import RemoteData exposing (RemoteData(..), WebData)
+import Set
 import Types exposing (..)
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    { courses = NotAsked
+    { api = flags.api
+    , courses = NotAsked
     , courseMap = Dict.empty
+    , competingDivisions = Set.fromList flags.competingDivisions
     , employees = NotAsked
     , employeeMap = Dict.empty
     , organisations = NotAsked
@@ -22,7 +25,6 @@ init flags =
     , report = SummaryReport
     , sidebar = SearchOrganisation
     , search = ""
-    , api = flags.api
     }
         ! [ Api.loadInitialData flags.api ]
 

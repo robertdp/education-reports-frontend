@@ -26,7 +26,7 @@ styles style =
         []
     , Style.style (style OrganisationName)
         [ Font.noWrap
-        , Style.rotate (-pi / 2)
+        , Style.rotate (-pi / 4)
         ]
     , Style.style (style OrganisationNameContainer)
         [ Font.noWrap
@@ -51,10 +51,14 @@ view :
     -> Element.Element style variation Msg
 view style model =
     let
-        cells =
-            organisations ++ courses ++ results
+        courses =
+            model.courses
+                |> List.sortBy .shortName
 
-        organisations =
+        cells =
+            organisationHeaders ++ courseHeaders ++ results
+
+        organisationHeaders =
             model.organisations
                 |> List.filter (.parentId >> (==) Nothing)
                 |> List.indexedMap
@@ -65,7 +69,7 @@ view style model =
                                 ]
                             |> List.singleton
                             |> Element.row (style OrganisationNameContainer)
-                                [ Attributes.height <| Attributes.px 330
+                                [ Attributes.height <| Attributes.px 200
                                 , Attributes.width <| Attributes.px 40
                                 , Attributes.alignBottom
                                 , Attributes.paddingLeft 20
@@ -77,11 +81,11 @@ view style model =
                                 }
                     )
 
-        courses =
-            model.courses
+        courseHeaders =
+            courses
                 |> List.indexedMap
                     (\y course ->
-                        Element.text course.name
+                        Element.text course.shortName
                             |> Element.el (style CourseName)
                                 []
                             |> List.singleton
@@ -99,10 +103,9 @@ view style model =
 
         results =
             model.organisations
-                |> List.filter (.parentId >> (==) Nothing)
                 |> List.indexedMap
                     (\x organisation ->
-                        model.courses
+                        courses
                             |> List.indexedMap
                                 (\y course ->
                                     model.summaries
@@ -159,8 +162,10 @@ view style model =
                 |> List.concat
     in
         Element.grid (style SummaryGrid)
-            { rows = [ Attributes.px 330 ]
+            { rows = [ Attributes.px 200 ]
             , columns = []
             }
-            [ Attributes.spacing 10 ]
+            [ Attributes.spacing 10
+            , Attributes.maxWidth <| Attributes.px 1
+            ]
             cells

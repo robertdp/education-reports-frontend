@@ -124,25 +124,6 @@ view style model =
                                 False
                     )
 
-        -- showMemberEnrolments heading employees =
-        --     if employees == [] then
-        --         Element.empty
-        --     else
-        --         CardBlock.view
-        --             { style = style << CardBlockStyle
-        --             , header = always <| Element.text heading
-        --             , content =
-        --                 List.map
-        --                     (\employee ->
-        --                         Element.el (style EmployeeListItem)
-        --                             [ Attributes.paddingXY 12 8 ]
-        --                             (Element.text employee.name)
-        --                     )
-        --                     >> Element.column (style EmployeeList)
-        --                         [ Attributes.padding 5
-        --                         ]
-        --             }
-        --             employees
         showMemberEnrolments f heading employees =
             if employees == [] then
                 Element.empty

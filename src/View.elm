@@ -1,11 +1,11 @@
 module View exposing (..)
 
 import Component.Button as Button
-import Component.OrganisationCourseReport as OrganisationCourseReport
 import Component.CardBlock as CardBlock
 import Component.EmployeeReport as EmployeeReport
 import Component.EmployeeSidebar as EmployeeSidebar
 import Component.Layout as Layout
+import Component.OrganisationCourseReport as OrganisationCourseReport
 import Component.OrganisationReport as OrganisationReport
 import Component.OrganisationSidebar as OrganisationSidebar
 import Component.OrganisationSummaryReport as OrganisationSummaryReport
@@ -13,6 +13,7 @@ import Element exposing (Element, button, column, el, empty, inputText, row, tex
 import Element.Attributes exposing (center, fill, height, padding, paddingXY, placeholder, px, scrollbars, spacing, verticalCenter, width, yScrollbar)
 import Html
 import RemoteData exposing (RemoteData(..), WebData)
+import Set
 import Style exposing (style)
 import Types exposing (..)
 
@@ -107,6 +108,9 @@ sidebar model =
             ]
 
 
+viewRemoteData :
+    RemoteData a (Element style variation msg)
+    -> Element style variation msg
 viewRemoteData data =
     case data of
         Loading ->
@@ -138,18 +142,17 @@ content model =
                 |> viewRemoteData
 
         OrganisationReport organisation data ->
-            RemoteData.map3
-                (\courses enrolments organisations ->
+            RemoteData.map2
+                (\courses enrolments ->
                     OrganisationReport.view OrganisationReportStyle
                         { courses = courses
                         , enrolments = enrolments
-                        , organisations = organisations
+                        , organisations = model.organisationMap
                         , organisation = organisation
                         }
                 )
                 model.courses
                 data
-                model.organisations
                 |> viewRemoteData
 
         OrganisationCourseReport organisation course data ->
@@ -171,7 +174,10 @@ content model =
                 (\organisations courses summaries ->
                     OrganisationSummaryReport.view OrganisationSummaryReportStyle
                         { courses = courses
-                        , organisations = organisations
+                        , organisations =
+                            organisations
+                                |> List.filter (.parentId >> (==) Nothing)
+                                |> List.filter (.name >> flip Set.member model.competingDivisions)
                         , summaries = model.organisationSummaryMap
                         }
                 )

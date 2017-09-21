@@ -2,23 +2,18 @@ module Component.OrganisationReport exposing (..)
 
 import Color
 import Component.CardBlock as CardBlock
+import Data.Recursive as Recursive
 import Element
 import Element.Attributes as Attributes
 import Element.Events as Events
 import Set
 import Style
+import Style.Background as Background
+import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
 import Types exposing (..)
-
-
-type alias Model a =
-    { a
-        | organisation : Organisation
-        , enrolments : List Enrolment
-        , courses : List Course
-        , organisations : List Organisation
-    }
+import Dict
 
 
 type Style
@@ -30,6 +25,9 @@ type Style
     | CourseSummaryListItem
     | CourseSummaryStars
     | CourseSummaryCompleted
+    | BackButton
+    | BackButtonIcon
+    | BackButtonText
     | CardBlockStyle CardBlock.Style
 
 
@@ -59,19 +57,66 @@ styles style =
     , Style.style (style CourseSummaryCompleted)
         [ Font.alignRight
         ]
+    , Style.style (style BackButton)
+        [ Border.none
+        , Color.text Color.darkCharcoal
+        , Border.rounded 3
+        , Font.size 16
+        , Background.gradient 0
+            [ Background.step <| Color.rgb 205 208 211
+            , Background.step <| Color.rgb 230 232 234
+            ]
+        , Style.cursor "pointer"
+        ]
+    , Style.style (style BackButtonIcon)
+        [ Font.size 24
+        ]
+    , Style.style (style BackButtonText)
+        [ Font.size 16
+        ]
     ]
         ++ CardBlock.styles (style << CardBlockStyle)
 
 
 view :
     (Style -> style)
-    -> Model a
+    ->
+        { a
+            | organisation : Organisation
+            , enrolments : List Enrolment
+            , courses : List Course
+            , organisations : Dict.Dict Id Organisation
+        }
     -> Element.Element style variation Msg
 view style model =
     let
         memberCount =
             memberEmails model.organisation
                 |> Set.size
+
+        backButton =
+            case Recursive.getParent model.organisations model.organisation of
+                Just parent ->
+                    Element.button <|
+                        Element.row (style BackButton)
+                            [ Attributes.paddingXY 8 4
+                            , Attributes.alignLeft
+                            , Attributes.verticalCenter
+                            , Events.onClick <| SelectOrganisation parent
+                            ]
+                            [ Element.el (style BackButtonIcon)
+                                [ Attributes.paddingXY 4 0
+                                , Attributes.paddingBottom 2
+                                ]
+                                (Element.text "⇤")
+                            , Element.el (style BackButtonText)
+                                [ Attributes.paddingXY 4 0
+                                ]
+                                (Element.text <| "Back to " ++ parent.name)
+                            ]
+
+                Nothing ->
+                    Element.empty
 
         organisationDetails =
             Element.column (style None)
@@ -80,8 +125,7 @@ view style model =
                 ]
 
         getChildOrganisationList organisation =
-            model.organisations
-                |> List.filter (\organisation_ -> organisation_.parentId == Just organisation.id)
+            Recursive.getDirectDescendants model.organisations organisation
 
         memberEmails organisation =
             getChildOrganisationList organisation
@@ -210,7 +254,8 @@ view style model =
         Element.column (style None)
             [ Attributes.spacing 16
             ]
-            [ organisationDetails
+            [ backButton
+            , organisationDetails
             , childOrganisationDetails
             , allCourseEnrolmentDetails
             ]

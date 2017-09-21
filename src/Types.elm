@@ -104,6 +104,7 @@ type alias InitialData =
 type alias Model =
     { employees : WebData (List Employee)
     , employeeMap : Dict Email Employee
+    , competingDivisions : Set String
     , courses : WebData (List Course)
     , courseMap : Dict Id Course
     , organisations : WebData (List Organisation)
@@ -123,4 +124,6 @@ type Sidebar
 
 
 type alias Flags =
-    { api : String }
+    { api : String
+    , competingDivisions : List String
+    }
