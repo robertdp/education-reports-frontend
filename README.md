@@ -26,4 +26,3 @@ The files that appear under `dist/` are:
 | `app.dev.js`    | JavaScript output for the live preview   | ✗           |
 | `app.js`        | JavaScript output from the Elm build process | ✗           |
 | `app.min.js`    | Optimised version of `app.js` after being run though UglifyJS | ✓           |
-| `app.min.js.gz` | `app.min.js` after being run through `gzip` on the highest settings | ✓           |
