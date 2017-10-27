@@ -148,8 +148,11 @@ update msg model =
             let
                 newReport =
                     case model.report of
-                        OrganisationCourseReport organisation _ data ->
-                            OrganisationReport organisation data
+                        OrganisationCourseReport lastOrganisation _ data ->
+                            if organisation == lastOrganisation then
+                                OrganisationReport organisation data
+                            else
+                                OrganisationReport organisation Loading
 
                         _ ->
                             OrganisationReport organisation Loading
