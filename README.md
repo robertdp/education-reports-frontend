@@ -7,7 +7,8 @@ Requirements:
 Clone the repo, and navigate to the folder in a terminal and run:
 
 ```sh
-$ npm install --global elm elm-format elm-live uglify-js && npm install
+$ npm install --global elm elm-live uglify-js
+$ npm install
 ```
 
 Extra commands are included as NPM tasks:
@@ -25,4 +26,3 @@ The files that appear under `dist/` are:
 | `app.dev.js`    | JavaScript output for the live preview   | ✗           |
 | `app.js`        | JavaScript output from the Elm build process | ✗           |
 | `app.min.js`    | Optimised version of `app.js` after being run though UglifyJS | ✓           |
-| `app.min.js.gz` | `app.min.js` after being run through `gzip` on the highest settings | ✓           |
