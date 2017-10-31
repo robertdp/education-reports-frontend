@@ -25,18 +25,15 @@ styles style =
     , Style.style (style SummaryGrid)
         []
     , Style.style (style OrganisationName)
-        [ Font.noWrap
-        , Style.rotate (-pi / 4)
+        [ Style.rotate (-pi / 4)
         ]
     , Style.style (style OrganisationNameContainer)
-        [ Font.noWrap
-        ]
+        []
     , Style.style (style CourseName)
-        [ Font.noWrap
-        , Font.alignRight
+        [ Font.alignRight
         ]
     , Style.style (style CourseNameContainer)
-        [ Font.noWrap ]
+        []
     ]
 
 
@@ -74,11 +71,14 @@ view style model =
                                 , Attributes.alignBottom
                                 , Attributes.paddingLeft 20
                                 ]
-                            |> Element.area
-                                { start = ( x + 1, 0 )
-                                , width = 1
-                                , height = 1
-                                }
+                            |> (\content ->
+                                    Element.cell
+                                        { start = ( x + 1, 0 )
+                                        , width = 1
+                                        , height = 1
+                                        , content = content
+                                        }
+                               )
                     )
 
         courseHeaders =
@@ -94,11 +94,14 @@ view style model =
                                 , Attributes.verticalCenter
                                 , Attributes.alignRight
                                 ]
-                            |> Element.area
-                                { start = ( 0, y + 1 )
-                                , width = 1
-                                , height = 1
-                                }
+                            |> (\content ->
+                                    Element.cell
+                                        { start = ( 0, y + 1 )
+                                        , width = 1
+                                        , height = 1
+                                        , content = content
+                                        }
+                               )
                     )
 
         results =
@@ -152,20 +155,23 @@ view style model =
                                                             ]
                                             )
                                         |> Maybe.withDefault Element.empty
-                                        |> Element.area
-                                            { start = ( x + 1, y + 1 )
-                                            , width = 1
-                                            , height = 1
-                                            }
+                                        |> (\content ->
+                                                Element.cell
+                                                    { start = ( x + 1, y + 1 )
+                                                    , width = 1
+                                                    , height = 1
+                                                    , content = content
+                                                    }
+                                           )
                                 )
                     )
                 |> List.concat
     in
         Element.grid (style SummaryGrid)
-            { rows = [ Attributes.px 200 ]
-            , columns = []
-            }
             [ Attributes.spacing 10
             , Attributes.maxWidth <| Attributes.px 1
             ]
-            cells
+            { rows = [ Attributes.px 200 ]
+            , columns = []
+            , cells = cells
+            }

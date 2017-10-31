@@ -9,7 +9,7 @@
     "optimise": "cat ./dist/app.js | uglifyjs --compress --mangle --output ./dist/app.min.js",
     "compress": " gzip --best --force ./dist/app.min.js --to-stdout > ./dist/app.min.js.gz",
     "build": "npm run make && npm run optimise",
-    "getip" : "ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/'",
+    "getip": "ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/'",
     "live": "npm run getip | tail -n1 | xargs -I % sh -c 'elm-live ./src/App.elm --output=./dist/app.dev.js --dir=./dist --host=% --open'"
   },
   "devDependencies": {

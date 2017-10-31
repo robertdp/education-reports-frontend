@@ -24,10 +24,8 @@ styles style =
         ]
     , Style.style (style Body)
         [ Color.background Color.white
-        , Style.shadows
-            [ Shadow.box { offset = ( 0, 1 ), size = 0, blur = 1, color = Color.rgba 0 0 0 0.15 }
-            , Shadow.box { offset = ( 0, 0 ), size = 0, blur = 1, color = Color.rgba 0 0 0 0.2 }
-            ]
+        , Shadow.box { offset = ( 0, 1 ), size = 0, blur = 1, color = Color.rgba 0 0 0 0.15 }
+        , Shadow.box { offset = ( 0, 0 ), size = 0, blur = 1, color = Color.rgba 0 0 0 0.2 }
         ]
     ]
 

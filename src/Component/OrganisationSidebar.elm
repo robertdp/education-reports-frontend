@@ -68,12 +68,12 @@ view style model =
                 |> (++) [ organisationSummaryReport style ]
                 |> Element.column (style ResultList)
                     [ Attributes.yScrollbar
-                    , Attributes.height <| Attributes.fill 1
+                    , Attributes.height <| Attributes.fillPortion 1
                     ]
     in
         Element.column (style None)
             [ Attributes.padding 5
-            , Attributes.height <| Attributes.fill 1
+            , Attributes.height <| Attributes.fillPortion 1
             ]
             [ results
             ]

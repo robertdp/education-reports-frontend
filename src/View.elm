@@ -9,8 +9,8 @@ import Component.OrganisationCourseReport as OrganisationCourseReport
 import Component.OrganisationReport as OrganisationReport
 import Component.OrganisationSidebar as OrganisationSidebar
 import Component.OrganisationSummaryReport as OrganisationSummaryReport
-import Element exposing (Element, button, column, el, empty, inputText, row, text, viewport)
-import Element.Attributes exposing (center, fill, height, padding, paddingXY, placeholder, px, scrollbars, spacing, verticalCenter, width, yScrollbar)
+import Element exposing (Element, button, column, el, empty, row, text, viewport)
+import Element.Attributes exposing (center, fill, fillPortion, height, padding, paddingXY, px, scrollbars, spacing, verticalCenter, width, yScrollbar)
 import Html
 import RemoteData exposing (RemoteData(..), WebData)
 import Set
@@ -94,7 +94,7 @@ sidebar model =
                         |> viewRemoteData
     in
         column None
-            [ height <| fill 1 ]
+            [ height <| fillPortion 1 ]
             [ el None
                 [ padding 12 ]
                 (Button.view

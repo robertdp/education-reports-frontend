@@ -95,7 +95,6 @@ view style model =
                             (\course ->
                                 Element.row (style None)
                                     [ Attributes.paddingXY 12 8
-                                    , Attributes.justify
                                     ]
                                     (f course)
                             )

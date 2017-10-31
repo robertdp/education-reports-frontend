@@ -26,7 +26,12 @@ styles : (Style -> style) -> List (Style.Style style variation)
 styles style =
     [ Style.style (style None) []
     , Style.style (style Main)
-        [ Font.typeface [ "Roboto", "メイリオ", "Meiryo", "sans-serif" ]
+        [ Font.typeface
+            [ Font.font "Roboto"
+            , Font.font "メイリオ"
+            , Font.font "Meiryo"
+            , Font.sansSerif
+            ]
         , Font.size 14
         ]
     , Style.style (style Header)
@@ -41,9 +46,7 @@ styles style =
         []
     , Style.style (style Content)
         [ Color.background <| Color.rgb 240 241 242
-        , Style.shadows
-            [ Shadow.inset { offset = ( 5, 0 ), size = -6, blur = 6, color = Color.rgba 0 0 0 0.5 }
-            ]
+        , Shadow.inset { offset = ( 5, 0 ), size = -6, blur = 6, color = Color.rgba 0 0 0 0.5 }
         ]
     ]
 
@@ -59,12 +62,12 @@ view :
     -> Element.Element style variation msg
 view config model =
     Element.row (config.style Main)
-        [ Attributes.height <| Attributes.fill 1 ]
+        [ Attributes.height <| Attributes.fillPortion 1 ]
         [ Element.column (config.style Sidebar)
             [ Attributes.width <| Attributes.px 256 ]
             [ config.sidebar model ]
         , Element.column (config.style None)
-            [ Attributes.width <| Attributes.fill 1 ]
+            [ Attributes.width <| Attributes.fillPortion 1 ]
             [ Element.row (config.style Header)
                 [ Attributes.height <| Attributes.px 60
                 , Attributes.verticalCenter
@@ -72,7 +75,7 @@ view config model =
                 ]
                 [ config.header model ]
             , Element.el (config.style Content)
-                [ Attributes.height <| Attributes.fill 1
+                [ Attributes.height <| Attributes.fillPortion 1
                 , Attributes.yScrollbar
                 , Attributes.id "layout-content"
                 ]

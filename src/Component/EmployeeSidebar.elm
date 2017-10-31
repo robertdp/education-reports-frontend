@@ -4,6 +4,7 @@ import Color
 import Element
 import Element.Attributes as Attributes
 import Element.Events as Events
+import Element.Input as Input exposing (placeholder)
 import Style
 import Style.Border as Border
 import Style.Color as Color
@@ -84,20 +85,23 @@ view style model =
                 |> List.map (showEmployee style)
                 |> Element.column (style ResultList)
                     [ Attributes.yScrollbar
-                    , Attributes.height <| Attributes.fill 1
+                    , Attributes.height <| Attributes.fillPortion 1
                     ]
     in
         Element.column (style None)
             [ Attributes.padding 5
             , Attributes.spacing 5
-            , Attributes.height <| Attributes.fill 1
+            , Attributes.height <| Attributes.fillPortion 1
             ]
-            [ Element.inputText (style SearchInput)
-                [ Events.onInput Search
-                , Attributes.padding 5
-                , Attributes.placeholder "Employee name or email"
+            [ Input.text (style SearchInput)
+                [ Attributes.padding 5
                 ]
-                model.search
+                { onChange = Search
+                , value = model.search
+                , label = Input.placeholder { text = "Employee name or email", label = Input.hiddenLabel "hi there" }
+                , options =
+                    []
+                }
             , results
             ]
 

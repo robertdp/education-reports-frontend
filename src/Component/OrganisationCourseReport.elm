@@ -136,7 +136,7 @@ view style model =
                             (\employee ->
                                 Element.row (style EmployeeListItem)
                                     [ Attributes.paddingXY 12 8
-                                    , Attributes.width <| Attributes.fill 1
+                                    , Attributes.width <| Attributes.fillPortion 1
                                     , Attributes.minWidth <| Attributes.px 670
                                     ]
                                     (f employee)
@@ -154,8 +154,8 @@ view style model =
                 ]
 
         backButton =
-            Element.button <|
-                Element.row (style BackButton)
+            Element.button (style BackButton) [] <|
+                Element.row (style None)
                     [ Attributes.paddingXY 8 4
                     , Attributes.alignLeft
                     , Attributes.verticalCenter

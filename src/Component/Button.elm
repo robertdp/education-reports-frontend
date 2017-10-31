@@ -27,9 +27,7 @@ styles style =
         , Border.rounded 3
         , Font.lineHeight 1.5
         , Font.size 16
-        , Style.shadows
-            [ Shadow.text { offset = ( 1, 1 ), blur = 0.5, color = Color.rgba 0 0 0 0.6 }
-            ]
+        , Shadow.text { offset = ( 1, 1 ), blur = 0.5, color = Color.rgba 0 0 0 0.6 }
         , Background.gradient 0
             [ Background.step <| Color.rgb 59 119 219
             , Background.step <| Color.rgb 66 133 244
@@ -49,14 +47,14 @@ view :
 view config content =
     let
         attributes =
-            [ Attributes.width <| Attributes.fill 1
+            [ Attributes.width <| Attributes.fillPortion 1
             , Attributes.paddingXY 12 6
             ]
 
         events =
             [ Events.onClick config.onClick ]
     in
-        Element.button <|
-            Element.el (config.style Button)
-                (attributes ++ events)
-                content
+        Element.button
+            (config.style Button)
+            (attributes ++ events)
+            content

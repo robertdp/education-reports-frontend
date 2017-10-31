@@ -97,8 +97,8 @@ view style model =
         backButton =
             case Recursive.getParent model.organisations model.organisation of
                 Just parent ->
-                    Element.button <|
-                        Element.row (style BackButton)
+                    Element.button (style BackButton) [] <|
+                        Element.row (style None)
                             [ Attributes.paddingXY 8 4
                             , Attributes.alignLeft
                             , Attributes.verticalCenter
@@ -137,7 +137,7 @@ view style model =
                 , Events.onClick <| SelectOrganisation organisation
                 ]
                 [ Element.el (style None)
-                    [ Attributes.width <| Attributes.fill 1 ]
+                    [ Attributes.width <| Attributes.fillPortion 1 ]
                     (Element.text organisation.name)
                 , Element.el (style None)
                     []
@@ -156,8 +156,7 @@ view style model =
                             always <|
                                 Element.row
                                     (style None)
-                                    [ Attributes.justify
-                                    , Attributes.width <| Attributes.fill 1
+                                    [ Attributes.width <| Attributes.fillPortion 1
                                     ]
                                     [ Element.el (style None) [] (Element.text "Organisation")
                                     , Element.el (style None)
@@ -213,15 +212,15 @@ view style model =
             -> Element.Element style variation Msg
         showCourseSummaryRow summary =
             Element.row (style CourseSummaryListItem)
-                [ Attributes.width <| Attributes.fill 1
+                [ Attributes.width <| Attributes.fillPortion 1
                 , Attributes.paddingXY 12 8
                 , Events.onClick <| SelectCourse summary.course
                 ]
                 [ Element.el (style None)
-                    [ Attributes.width <| Attributes.fill 1 ]
+                    [ Attributes.width <| Attributes.fillPortion 1 ]
                     (Element.text summary.course.name)
                 , Element.el (style CourseSummaryCompleted)
-                    [ Attributes.width <| Attributes.fill 1
+                    [ Attributes.width <| Attributes.fillPortion 1
                     ]
                     (Element.text <| (toString (100 * toFloat summary.completed / toFloat memberCount |> round)) ++ "%")
                 ]
@@ -237,8 +236,7 @@ view style model =
                         , header =
                             always <|
                                 Element.row (style None)
-                                    [ Attributes.justify
-                                    , Attributes.width <| Attributes.fill 1
+                                    [ Attributes.width <| Attributes.fillPortion 1
                                     ]
                                     [ Element.el (style None) [] (Element.text "Course completion")
                                     , Element.el (style None) [] (showMemberCount memberCount)
