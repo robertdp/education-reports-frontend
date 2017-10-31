@@ -3,7 +3,7 @@ module Component.OrganisationSummaryReport exposing (..)
 import Color
 import Dict
 import Element
-import Element.Attributes as Attributes
+import Element.Attributes as Attributes exposing (alignLeft)
 import Style
 import Style.Font as Font
 import Types exposing (..)
@@ -24,11 +24,10 @@ styles style =
         []
     , Style.style (style SummaryGrid)
         []
-    , Style.style (style OrganisationName)
-        [ Style.rotate (-pi / 4)
-        ]
     , Style.style (style OrganisationNameContainer)
         []
+    , Style.style (style OrganisationName)
+        [ Style.rotate (-pi / 4) ]
     , Style.style (style CourseName)
         [ Font.alignRight
         ]
@@ -62,14 +61,14 @@ view style model =
                     (\x organisation ->
                         Element.text organisation.name
                             |> Element.el (style OrganisationName)
-                                [ Attributes.width <| Attributes.px 0
+                                [ Attributes.height <| Attributes.px 40
+                                , Attributes.width <| Attributes.px 200
                                 ]
                             |> List.singleton
                             |> Element.row (style OrganisationNameContainer)
                                 [ Attributes.height <| Attributes.px 200
                                 , Attributes.width <| Attributes.px 40
-                                , Attributes.alignBottom
-                                , Attributes.paddingLeft 20
+                                , Attributes.paddingTop 100
                                 ]
                             |> (\content ->
                                     Element.cell
@@ -171,7 +170,7 @@ view style model =
             [ Attributes.spacing 10
             , Attributes.maxWidth <| Attributes.px 1
             ]
-            { rows = [ Attributes.px 200 ]
+            { rows = []
             , columns = []
             , cells = cells
             }
