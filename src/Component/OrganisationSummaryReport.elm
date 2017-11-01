@@ -3,7 +3,7 @@ module Component.OrganisationSummaryReport exposing (..)
 import Color
 import Dict
 import Element
-import Element.Attributes as Attributes exposing (alignLeft)
+import Element.Attributes as Attributes
 import Style
 import Style.Font as Font
 import Types exposing (..)
@@ -27,7 +27,8 @@ styles style =
     , Style.style (style OrganisationNameContainer)
         []
     , Style.style (style OrganisationName)
-        [ Style.rotate (-pi / 4) ]
+        [ Style.rotate (-pi / 4)
+        ]
     , Style.style (style CourseName)
         [ Font.alignRight
         ]
@@ -61,14 +62,14 @@ view style model =
                     (\x organisation ->
                         Element.text organisation.name
                             |> Element.el (style OrganisationName)
-                                [ Attributes.height <| Attributes.px 40
-                                , Attributes.width <| Attributes.px 200
+                                [ Attributes.height <| Attributes.px 80
+                                , Attributes.width <| Attributes.px 280
                                 ]
                             |> List.singleton
                             |> Element.row (style OrganisationNameContainer)
-                                [ Attributes.height <| Attributes.px 200
-                                , Attributes.width <| Attributes.px 40
-                                , Attributes.paddingTop 100
+                                [ Attributes.width <| Attributes.px 40
+                                , Attributes.height <| Attributes.px 200
+                                , Attributes.paddingTop 80
                                 ]
                             |> (\content ->
                                     Element.cell
