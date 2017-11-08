@@ -154,20 +154,22 @@ view style model =
                 ]
 
         backButton =
-            Element.button (style BackButton) [] <|
+            Element.button (style BackButton)
+                [ Attributes.paddingXY 8 4
+                , Attributes.alignLeft
+                , Attributes.verticalCenter
+                , Events.onClick <| SelectOrganisation model.organisation
+                ]
+            <|
                 Element.row (style None)
-                    [ Attributes.paddingXY 8 4
-                    , Attributes.alignLeft
-                    , Attributes.verticalCenter
-                    , Events.onClick <| SelectOrganisation model.organisation
-                    ]
+                    []
                     [ Element.el (style BackButtonIcon)
                         [ Attributes.paddingXY 4 0
-                        , Attributes.paddingBottom 2
                         ]
                         (Element.text "⇤")
                     , Element.el (style BackButtonText)
                         [ Attributes.paddingXY 4 0
+                        , Attributes.verticalCenter
                         ]
                         (Element.text <| "Back to " ++ model.organisation.name)
                     ]

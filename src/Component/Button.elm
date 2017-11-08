@@ -47,7 +47,7 @@ view :
 view config content =
     let
         attributes =
-            [ Attributes.width <| Attributes.fillPortion 1
+            [ Attributes.width Attributes.fill
             , Attributes.paddingXY 12 6
             ]
 
