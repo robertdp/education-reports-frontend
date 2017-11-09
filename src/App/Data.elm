@@ -1,50 +1,128 @@
-module Api exposing (..)
+module App.Data exposing (..)
 
-import Date
+import Date exposing (Date)
 import Http
 import Json.Decode exposing (..)
-import RemoteData
-import Set
-import Types exposing (..)
+import RemoteData exposing (WebData)
+import Set exposing (Set)
 
 
-loadInitialData : Url -> Cmd Msg
-loadInitialData api =
+type alias Email =
+    String
+
+
+type alias Id =
+    Int
+
+
+type alias Url =
+    String
+
+
+type alias Category =
+    { id : Id
+    , name : String
+    , parentId : Maybe Id
+    }
+
+
+type alias Course =
+    { id : Id
+    , name : String
+    , shortName : String
+    }
+
+
+type alias Employee =
+    { email : Email
+    , name : String
+    , number : Maybe String
+    , organisationId : Id
+    }
+
+
+type alias Organisation =
+    { id : Id
+    , name : String
+    , managerEmails : Set Email
+    , employeeEmails : Set Email
+    , parentId : Maybe Id
+    }
+
+
+type alias Enrolment =
+    { employeeEmail : Email
+    , courseId : Id
+    , status : EnrolmentStatus
+    }
+
+
+type alias OrganisationSummary =
+    { organisationId : Id
+    , courseId : Id
+    , members : Int
+    , enrolled : Int
+    , completed : Int
+    }
+
+
+type EnrolmentStatus
+    = NotEnrolled
+    | Enrolled
+    | Completed Date
+
+
+type alias InitialData =
+    { courses : List Course
+    , employees : List Employee
+    , organisations : List Organisation
+    , organisationSummaries : List OrganisationSummary
+    }
+
+
+loadInitialData : (WebData InitialData -> msg) -> Url -> Cmd msg
+loadInitialData toMsg api =
     let
         endpoint =
             api ++ "/"
     in
         Http.get endpoint initialDataDecoder
             |> RemoteData.sendRequest
-            |> Cmd.map InitialDataLoaded
+            |> Cmd.map toMsg
 
 
-loadEnrolmentData : Url -> Employee -> Cmd Msg
-loadEnrolmentData api employee =
+loadEmployeeEnrolments : (WebData (List Enrolment) -> msg) -> Url -> Employee -> Cmd msg
+loadEmployeeEnrolments toMsg api employee =
     let
         endpoint =
             api ++ "/enrolment?email=" ++ Http.encodeUri employee.email
     in
         Http.get endpoint (list enrolmentDecoder)
             |> RemoteData.sendRequest
-            |> Cmd.map (EmployeeReportLoaded employee)
+            |> Cmd.map toMsg
 
 
-loadOrganisationData : Url -> Organisation -> Cmd Msg
-loadOrganisationData api organisation =
-    let
-        endpoint =
-            api ++ "/organisation?organisation_id=" ++ (Http.encodeUri <| toString organisation.id)
-    in
-        Http.get endpoint (list enrolmentDecoder)
-            |> RemoteData.sendRequest
-            |> Cmd.map (OrganisationReportLoaded organisation)
-
-
-
--- loadCourseAndOrganisationData : Url -> Course -> Organisation -> Cmd Msg
--- loadCourseAndOrganisationData url course organisation =
---     Cmd.none
+loadOrganisationEnrolments : (WebData (List Enrolment) -> msg) -> Url -> Maybe Organisation -> Maybe Course -> Cmd msg
+loadOrganisationEnrolments toMsg api organisation course =
+    if organisation == Nothing && course == Nothing then
+        Cmd.none
+    else
+        let
+            endpoint =
+                [ organisation |> Maybe.map (.id >> toString >> (++) "organisation_id=")
+                , course |> Maybe.map (.id >> toString >> (++) "course_id=")
+                ]
+                    |> List.filterMap identity
+                    |> String.join "&"
+                    |> (\query ->
+                            api
+                                ++ "/organisation?"
+                                ++ query
+                       )
+        in
+            Http.get endpoint (list enrolmentDecoder)
+                |> RemoteData.sendRequest
+                |> Cmd.map toMsg
 
 
 initialDataDecoder : Decoder InitialData

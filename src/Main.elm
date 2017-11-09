@@ -1,9 +1,8 @@
-module App exposing (main)
+module Main exposing (main)
 
-import Html exposing (Html)
-import State exposing (init, subscriptions, update)
-import Types exposing (Flags, Model, Msg)
-import View exposing (view)
+import App.State exposing (..)
+import App.View exposing (..)
+import Html
 
 
 main : Program Flags Model Msg

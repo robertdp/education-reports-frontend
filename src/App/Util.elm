@@ -1,4 +1,4 @@
-module Utils exposing (..)
+module App.Util exposing (..)
 
 
 matchAny : List (a -> Bool) -> a -> Bool
