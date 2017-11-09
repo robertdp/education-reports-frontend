@@ -8,7 +8,7 @@ Clone the repo, and navigate to the folder in a terminal and run:
 
 ```sh
 $ npm install --global elm elm-live uglify-js
-$ npm install
+$ elm-package install
 ```
 
 Extra commands are included as NPM tasks:
