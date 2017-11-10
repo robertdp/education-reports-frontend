@@ -1,5 +1,7 @@
 module App.State exposing (..)
 
+import App.Component.Menu as Menu
+import App.Page.User as User
 import App.Data exposing (..)
 import Dict exposing (Dict)
 import RemoteData exposing (RemoteData(NotAsked), WebData)
@@ -14,31 +16,33 @@ type alias Flags =
 
 type alias Model =
     { api : String
-    , employees : WebData (List Employee)
-    , employeeMap : Dict Email Employee
     , competingDivisions : Set String
     , courses : WebData (List Course)
-    , organisations : WebData (List Organisation)
+    , employeeMap : Dict Email Employee
+    , employees : WebData (List Employee)
+    , menu : Menu.Model
     , organisationSummaries : WebData (List OrganisationSummary)
+    , organisations : WebData (List Organisation)
+    , userPage : User.Model
     }
 
 
 type Msg
-    = NoOp
-    | LoadedInitialData (WebData InitialData)
-    | DrawerSelectTab Int
-    | DrawerUpdateFilter String
+    = MenuMsg Menu.Msg
+    | UserMsg User.Msg
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     { api = flags.api
-    , employees = NotAsked
-    , employeeMap = Dict.empty
     , competingDivisions = Set.fromList flags.competingDivisions
     , courses = NotAsked
-    , organisations = NotAsked
+    , employeeMap = Dict.empty
+    , employees = NotAsked
+    , menu = Menu.User
     , organisationSummaries = NotAsked
+    , organisations = NotAsked
+    , userPage = User.init
     }
         ! [-- loadInitialData flags.api
           ]
@@ -51,4 +55,14 @@ subscriptions model =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    model ! []
+    case msg of
+        MenuMsg msg_ ->
+            { model | menu = Menu.update msg_ model.menu } ! []
+
+        UserMsg msg_ ->
+            let
+                ( model_, cmds ) =
+                    User.update msg_ model.userPage
+            in
+                { model | userPage = model_ }
+                    ! [ cmds ]

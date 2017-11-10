@@ -1,5 +1,9 @@
 module App.Util exposing (..)
 
+import Element
+import Style
+import Html.Lazy
+
 
 matchAny : List (a -> Bool) -> a -> Bool
 matchAny predicates item =
@@ -29,3 +33,17 @@ filterAll =
 filterNone : List (a -> Bool) -> List a -> List a
 filterNone =
     matchNone >> List.filter
+
+
+makeLazy :
+    Style.StyleSheet style variation
+    -> (model -> Element.Element style variation msg)
+    -> (model -> Element.Element style variation msg)
+makeLazy stylesheet view =
+    let
+        view_ model =
+            view model
+                |> Element.toHtml stylesheet
+    in
+        Html.Lazy.lazy view_
+            >> Element.html
