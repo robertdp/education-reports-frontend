@@ -4,6 +4,7 @@ import Color exposing (..)
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Style exposing (..)
+import Style.Background as Background
 import Style.Color as Color
 import Style.Font as Font
 import Style.Shadow as Shadow
@@ -35,10 +36,12 @@ styles style_ =
             , Color.background (rgb 230 232 234)
             ]
         , style Header
-            [ Color.background blue
+            [ -- Color.background blue
+              Background.gradient 1 [ Background.step blue, Background.step red ]
             , Font.size 24
             , Color.text white
             , Shadow.text { offset = ( 0, 0.5 ), blur = 1, color = black }
+            , Font.light
             ]
         , style Sidebar
             [ Color.background white
@@ -66,7 +69,7 @@ view config model =
         column (style Main)
             [ width fill
             , height fill
-            , spread
+            , scrollbars
             ]
             [ row (style Header)
                 [ height (px 60)
@@ -92,6 +95,11 @@ view config model =
                         )
                     |> Maybe.withDefault empty
                 , config.content model
-                    |> el (style Content) [ paddingXY 32 24 ]
+                    |> el (style Content)
+                        [ paddingXY 32 24
+                        , width fill
+                        , height fill
+                        , yScrollbar
+                        ]
                 ]
             ]

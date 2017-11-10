@@ -2,11 +2,13 @@ module App.View exposing (..)
 
 import App.Component.Layout as Layout
 import App.Component.Menu as Menu
-import App.Page.User as User
 import App.Page.Summary as Summary
+import App.Page.User as User
 import App.State exposing (..)
 import Element exposing (..)
 import Html exposing (Html)
+import Html.Lazy
+import RemoteData
 import Style exposing (..)
 
 
@@ -15,18 +17,16 @@ type Styles
     | LayoutStyle Layout.Styles
     | MenuStyle Menu.Styles
     | UserStyle User.Styles
+    | SummaryStyle Summary.Styles
 
 
 styles : List (Style Styles variation)
 styles =
-    let
-        style_ wrapper =
-            wrapper >> style
-    in
-        [ style None [] ]
-            ++ Layout.styles LayoutStyle
-            ++ Menu.styles MenuStyle
-            ++ User.styles UserStyle
+    [ style None [] ]
+        ++ Layout.styles LayoutStyle
+        ++ Menu.styles MenuStyle
+        ++ User.styles UserStyle
+        ++ Summary.styles SummaryStyle
 
 
 combinedStyleSheet : StyleSheet Styles variation
@@ -82,13 +82,18 @@ content : Model -> Element Styles variation Msg
 content model =
     case model.menu of
         Menu.Summary ->
-            Summary.view model
+            Summary.view { style = SummaryStyle }
+                { courses = RemoteData.withDefault [] model.courses
+                , organisations = RemoteData.withDefault [] model.organisations
+                , summaries = model.organisationSummaryMap
+                , courseIds = model.competingCourseIds
+                , organisationIds = model.competingDivisionIds
+                }
 
         _ ->
             empty
 
 
 view : Model -> Html Msg
-view model =
-    viewport combinedStyleSheet <|
-        layout model
+view =
+    Html.Lazy.lazy (layout >> viewport combinedStyleSheet)

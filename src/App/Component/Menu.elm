@@ -82,13 +82,13 @@ icon tab =
         class =
             case tab of
                 Summary ->
-                    "fa-th-large"
+                    "fa-th"
 
                 Search ->
-                    "fa-search"
+                    "fa-sitemap"
 
                 User ->
-                    "fa-user"
+                    "fa-users"
     in
         Html.i [ Html.Attributes.class ("fa fa-fw fa-1x " ++ class) ] []
             |> html
