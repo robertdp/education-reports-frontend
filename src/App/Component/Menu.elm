@@ -15,7 +15,7 @@ import Style.Shadow as Shadow
 type Styles
     = None
     | Tabs
-    | Tab Tab
+    | InactiveTab
     | ActiveTab
 
 
@@ -30,50 +30,34 @@ type Msg
 
 type Tab
     = Summary
-    | Search
-    | User
+    | Organisation
+    | Employee
 
 
-styles : (Styles -> class) -> List (Style class variation)
-styles style_ =
-    let
-        style =
-            style_ >> Style.style
-    in
-        [ style None []
-        , style Tabs
-            [ cursor "pointer"
-            , Font.center
-            ]
-        , style (Tab Summary)
-            [ Color.text white
-            , hover
-                [ Color.background darkGrey
-                ]
-            ]
-        , style (Tab Search)
-            [ Color.text white
-            , hover
-                [ Color.background darkGrey
-                ]
-            ]
-        , style (Tab User)
-            [ Color.text white
-            , hover
-                [ Color.background darkGrey
-                ]
-            ]
-        , style ActiveTab
-            [ Color.text charcoal
-            , Color.background white
-            , Shadow.text { offset = ( 0.0, 0.0 ), blur = 0.0, color = white }
+styles : List (Style Styles variation)
+styles =
+    [ style None []
+    , style Tabs
+        [ cursor "pointer"
+        , Font.center
+        ]
+    , style InactiveTab
+        [ Color.text white
+        , hover
+            [ Color.background darkGrey
             ]
         ]
+    , style ActiveTab
+        [ Color.text charcoal
+        , Color.background white
+        , Shadow.text { offset = ( 0.0, 0.0 ), blur = 0.0, color = white }
+        ]
+    ]
 
 
 init : Model
 init =
-    Summary
+    Employee
 
 
 icon : Tab -> Element style variation msg
@@ -84,44 +68,37 @@ icon tab =
                 Summary ->
                     "fa-th"
 
-                Search ->
+                Organisation ->
                     "fa-sitemap"
 
-                User ->
+                Employee ->
                     "fa-users"
     in
         Html.i [ Html.Attributes.class ("fa fa-fw fa-1x " ++ class) ] []
             |> html
 
 
-view :
-    { a
-        | style : Styles -> style
-        , msg : Msg -> msg
-    }
-    -> Model
-    -> Element style variation msg
-view config model =
+view : Model -> Element Styles variation Msg
+view model =
     let
         tabs =
-            [ Summary, Search, User ]
+            [ Summary, Organisation, Employee ]
 
         class tab =
             if tab == model then
                 ActiveTab
             else
-                Tab tab
+                InactiveTab
 
         click tab =
-            config.msg
-                (if tab == model then
-                    NoOp
-                 else
-                    (SelectTab tab)
-                )
+            (if tab == model then
+                NoOp
+             else
+                (SelectTab tab)
+            )
                 |> onClick
     in
-        row (config.style Tabs)
+        row Tabs
             [ width fill
             , height fill
             , spread
@@ -130,11 +107,11 @@ view config model =
                 |> List.map
                     (\tab ->
                         icon tab
-                            |> el (config.style None)
+                            |> el None
                                 [ verticalCenter
                                 , center
                                 ]
-                            |> el (config.style <| class tab)
+                            |> el (class tab)
                                 [ width fill
                                 , height (px 60)
                                 , click tab

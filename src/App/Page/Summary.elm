@@ -18,45 +18,34 @@ type Styles
     | CourseCompletion
 
 
-styles : (Styles -> class) -> List (Style class variation)
-styles style_ =
-    let
-        style =
-            style_ >> Style.style
-    in
-        [ style None []
-        , style Summary
-            [ Font.size 16
-            , Font.light
-            ]
-        , style DivisionName
-            [ Style.rotate (-pi / 4)
-            ]
-        , style CourseName
-            []
-        , style CourseCompletion
-            []
+styles : List (Style Styles variation)
+styles =
+    [ style None []
+    , style Summary
+        [ Font.size 16
+        , Font.light
         ]
+    , style DivisionName
+        [ Style.rotate (-pi / 4)
+        ]
+    , style CourseName
+        []
+    , style CourseCompletion
+        []
+    ]
 
 
 view :
-    { b
-        | style : Styles -> style
+    { a
+        | courseIds : Set Id
+        , courses : List Course
+        , organisationIds : Set Id
+        , organisations : List Organisation
+        , summaries : Dict Id (Dict.Dict Id OrganisationSummary)
     }
-    ->
-        { a
-            | courseIds : Set Id
-            , courses : List Course
-            , organisationIds : Set Id
-            , organisations : List Organisation
-            , summaries : Dict Id (Dict.Dict Id OrganisationSummary)
-        }
-    -> Element.Element style variation msg
-view config model =
+    -> Element.Element Styles variation msg
+view model =
     let
-        style =
-            config.style
-
         courses =
             model.courses
                 -- |> List.filter (\course -> Set.member course.id model.courseIds)
@@ -74,12 +63,12 @@ view config model =
                 |> List.indexedMap
                     (\x organisation ->
                         Element.text organisation.name
-                            |> Element.el (style DivisionName)
+                            |> Element.el (DivisionName)
                                 [ width <| px 250
                                 , height <| px 50
                                 ]
                             |> List.singleton
-                            |> Element.row (style None)
+                            |> Element.row (None)
                                 [ width <| px 50
                                 , height <| px 200
                                 , paddingTop 100
@@ -99,10 +88,10 @@ view config model =
                 |> List.indexedMap
                     (\y course ->
                         Element.text course.shortName
-                            |> Element.el (style CourseName)
+                            |> Element.el (CourseName)
                                 []
                             |> List.singleton
-                            |> Element.row (style None)
+                            |> Element.row (None)
                                 [ height <| px 50
                                 , verticalCenter
                                 , alignRight
@@ -159,9 +148,9 @@ view config model =
                                                         |> toString
                                                         |> flip (++) "%"
                                                         |> Element.text
-                                                        |> Element.el (style CourseCompletion) []
+                                                        |> Element.el (CourseCompletion) []
                                                         |> List.singleton
-                                                        |> Element.row (style None)
+                                                        |> Element.row (None)
                                                             [ verticalCenter
                                                             , center
                                                             , inlineStyle [ ( "backgroundColor", backgroundColor ) ]
@@ -180,10 +169,10 @@ view config model =
                     )
                 |> List.concat
     in
-        Element.row (style None)
+        Element.row (None)
             []
-            [ Element.el (style None) [ width fill ] empty
-            , Element.grid (style Summary)
+            [ Element.el (None) [ width fill ] empty
+            , Element.grid (Summary)
                 [ spacing 10
                 , width fill
                 ]
@@ -191,5 +180,5 @@ view config model =
                 , columns = []
                 , cells = cells
                 }
-            , Element.el (style None) [ width fill ] empty
+            , Element.el (None) [ width fill ] empty
             ]

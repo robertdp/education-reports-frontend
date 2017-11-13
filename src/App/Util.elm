@@ -41,9 +41,7 @@ makeLazy :
     -> (model -> Element.Element style variation msg)
 makeLazy stylesheet view =
     let
-        view_ model =
-            view model
-                |> Element.toHtml stylesheet
+        view_ =
+            view >> Element.toHtml stylesheet
     in
-        Html.Lazy.lazy view_
-            >> Element.html
+        Html.Lazy.lazy view_ >> Element.html

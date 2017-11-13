@@ -1,7 +1,7 @@
 module App.State exposing (..)
 
 import App.Component.Menu as Menu
-import App.Page.User as User
+import App.Page.Employee as Employee
 import App.Data exposing (..)
 import Data.Record as Record
 import Dict exposing (Dict)
@@ -28,13 +28,13 @@ type alias Model =
     , menu : Menu.Model
     , organisationSummaryMap : Dict Id (Dict Id OrganisationSummary)
     , organisations : WebData (List Organisation)
-    , userPage : User.Model
+    , employeePage : Employee.Model
     }
 
 
 type Msg
     = MenuMsg Menu.Msg
-    | UserMsg User.Msg
+    | EmployeeMsg Employee.Msg
     | InitialData (WebData InitialData)
 
 
@@ -48,10 +48,10 @@ init flags =
     , courses = NotAsked
     , employeeMap = Dict.empty
     , employees = NotAsked
-    , menu = Menu.Summary
+    , menu = Menu.init
     , organisationSummaryMap = Dict.empty
     , organisations = NotAsked
-    , userPage = User.init
+    , employeePage = Employee.init
     }
         ! [ loadInitialData InitialData flags.api
           ]
@@ -68,13 +68,13 @@ update msg model =
         MenuMsg msg_ ->
             { model | menu = Menu.update msg_ model.menu } ! []
 
-        UserMsg msg_ ->
+        EmployeeMsg msg_ ->
             let
                 ( model_, cmds ) =
-                    User.update msg_ model.userPage
+                    Employee.update model.api msg_ model.employeePage
             in
-                { model | userPage = model_ }
-                    ! [ cmds ]
+                { model | employeePage = model_ }
+                    ! [ Cmd.map EmployeeMsg cmds ]
 
         InitialData data ->
             let
