@@ -1,6 +1,7 @@
 module App.State exposing (..)
 
 import App.Component.Menu as Menu
+import App.Page.Organisation as Organisation
 import App.Page.Employee as Employee
 import App.Data exposing (..)
 import Data.Record as Record
@@ -18,6 +19,7 @@ type alias Flags =
 
 type alias Model =
     { api : String
+    , categories : WebData (List Category)
     , competingCourses : Set String
     , competingCourseIds : Set Id
     , competingDivisions : Set String
@@ -26,6 +28,7 @@ type alias Model =
     , employeeMap : Dict Email Employee
     , employees : WebData (List Employee)
     , menu : Menu.Model
+    , organisationPage : Organisation.Model
     , organisationSummaryMap : Dict Id (Dict Id OrganisationSummary)
     , organisations : WebData (List Organisation)
     , employeePage : Employee.Model
@@ -35,12 +38,14 @@ type alias Model =
 type Msg
     = MenuMsg Menu.Msg
     | EmployeeMsg Employee.Msg
-    | InitialData (WebData InitialData)
+    | OrganisationMsg Organisation.Msg
+    | LoadedInitialData (WebData InitialData)
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     { api = flags.api
+    , categories = NotAsked
     , competingCourses = Set.fromList flags.competingCourses
     , competingCourseIds = Set.empty
     , competingDivisions = Set.fromList flags.competingDivisions
@@ -49,11 +54,12 @@ init flags =
     , employeeMap = Dict.empty
     , employees = NotAsked
     , menu = Menu.init
+    , organisationPage = Organisation.init
     , organisationSummaryMap = Dict.empty
     , organisations = NotAsked
     , employeePage = Employee.init
     }
-        ! [ loadInitialData InitialData flags.api
+        ! [ loadInitialData LoadedInitialData flags.api
           ]
 
 
@@ -76,10 +82,21 @@ update msg model =
                 { model | employeePage = model_ }
                     ! [ Cmd.map EmployeeMsg cmds ]
 
-        InitialData data ->
+        OrganisationMsg msg_ ->
+            let
+                ( model_, cmds ) =
+                    Organisation.update model.api msg_ model.organisationPage
+            in
+                { model | organisationPage = model_ }
+                    ! [ Cmd.map OrganisationMsg cmds ]
+
+        LoadedInitialData data ->
             let
                 courses =
                     RemoteData.map .courses data
+
+                categories =
+                    RemoteData.map .categories data
 
                 employees =
                     RemoteData.map .employees data
@@ -104,7 +121,6 @@ update msg model =
                                     |> Maybe.map .id
                             )
                         |> Set.fromList
-                        |> Debug.log "competingCourseIds"
 
                 competingDivisionIds =
                     model.competingDivisions
@@ -121,7 +137,6 @@ update msg model =
                                     |> Maybe.map .id
                             )
                         |> Set.fromList
-                        |> Debug.log "competingDivisionIds"
 
                 organisationSummaryMap =
                     data
@@ -132,7 +147,8 @@ update msg model =
                         |> RemoteData.withDefault model.organisationSummaryMap
             in
                 { model
-                    | competingCourseIds = competingCourseIds
+                    | categories = categories
+                    , competingCourseIds = competingCourseIds
                     , competingDivisionIds = competingDivisionIds
                     , courses = courses
                     , employees = employees

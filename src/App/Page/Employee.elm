@@ -10,6 +10,8 @@ import Element exposing (..)
 import Element.Attributes exposing (..)
 import Element.Events exposing (..)
 import Element.Input as Input
+import Html
+import Html.Attributes
 import RemoteData exposing (..)
 import Style exposing (..)
 import Style.Color as Color
@@ -42,7 +44,6 @@ type Styles
     | ReportEmployeeName
     | ReportEmployeeEmail
     | ResultRow
-    | NoEnrolments
     | CardStyle Card.Styles
 
 
@@ -97,9 +98,6 @@ styles =
                 [ Color.background lightGrey
                 ]
             ]
-        , style NoEnrolments
-            [-- Font.italic
-            ]
         , map CardStyle Card.styles
         ]
 
@@ -140,6 +138,12 @@ sidebar model employees =
             ]
 
 
+employeeIcon : Element style variation msg
+employeeIcon =
+    Html.i [ Html.Attributes.class ("fa fa-fw fa-2x fa-user") ] []
+        |> html
+
+
 showSearchResults : WebData (List Employee) -> Element Styles variation Msg
 showSearchResults =
     Loading.simpleSpinner LoadingSpinner
@@ -149,10 +153,18 @@ showSearchResults =
                 column SearchResult
                     [ paddingXY 12 8
                     , onClick <| SelectEmployee employee
+                    , clip
                     ]
                     [ el SearchEmployeeName [] (text employee.name)
                     , el SearchEmployeeEmail [] (text employee.email)
                     ]
+             -- |> (\item ->
+             --         row SearchResult
+             --             [ verticalCenter ]
+             --             [ el EmployeeIcon [] employeeIcon
+             --             , item
+             --             ]
+             --    )
             )
             >> column None
                 [ height fill
@@ -164,6 +176,7 @@ showSearchResults =
 view : List Course -> Model -> Element Styles variation Msg
 view courses model =
     let
+        enrolmentsWithCourses : WebData (List ( Enrolment, Course ))
         enrolmentsWithCourses =
             model.enrolments
                 |> RemoteData.map
@@ -183,31 +196,27 @@ view courses model =
                     (toString >> text >> el None [])
                     (\data ->
                         if List.isEmpty data then
-                            el NoEnrolments [] (text "No enrolments.")
+                            text "No enrolments."
                         else
                             Card.view
                                 { toStyle = CardStyle
                                 , header = always <| resultRow None (text "Course") (text "Completed")
                                 , content =
-                                    always
-                                        (data
-                                            |> List.map
-                                                (\( enrolment, course ) ->
-                                                    resultRow ResultRow (text course.shortName) (formatEnrolment enrolment)
-                                                )
-                                            |> column None
-                                                [ padding 5
-                                                ]
+                                    List.map
+                                        (\( enrolment, course ) ->
+                                            resultRow ResultRow (text course.shortName) (formatEnrolment enrolment)
                                         )
+                                        >> column None
+                                            [ padding 5
+                                            ]
                                 }
-                                ()
+                                data
                     )
 
         formatEnrolment enrolment =
             case enrolment.status of
                 Completed date ->
-                    [ Date.dayOfWeek date |> toString
-                    , Date.day date |> toString
+                    [ Date.day date |> toString
                     , Date.month date |> toString
                     , Date.year date |> toString
                     ]

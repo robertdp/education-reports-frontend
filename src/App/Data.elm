@@ -30,6 +30,7 @@ type alias Course =
     { id : Id
     , name : String
     , shortName : String
+    , categoryId : Id
     }
 
 
@@ -73,7 +74,8 @@ type EnrolmentStatus
 
 
 type alias InitialData =
-    { courses : List Course
+    { categories : List Category
+    , courses : List Course
     , employees : List Employee
     , organisations : List Organisation
     , organisationSummaries : List OrganisationSummary
@@ -127,19 +129,29 @@ loadOrganisationEnrolments toMsg api organisation course =
 
 initialDataDecoder : Decoder InitialData
 initialDataDecoder =
-    map4 InitialData
+    map5 InitialData
+        (field "categories" (list categoryDecoder |> map (List.sortBy .name)))
         (field "courses" (list courseDecoder |> map (List.sortBy .name)))
         (field "employees" (list employeeDecoder |> map (List.sortBy .name)))
         (field "organisations" (list organisationDecoder |> map (List.sortBy .name)))
         (field "organisation_summaries" (list organisationSummaryDecoder))
 
 
+categoryDecoder : Decoder Category
+categoryDecoder =
+    map3 Category
+        (field "id" int)
+        (field "name" string)
+        (field "parent_id" (maybe int))
+
+
 courseDecoder : Decoder Course
 courseDecoder =
-    map3 Course
+    map4 Course
         (field "id" int)
         (field "name" string)
         (field "short_name" string)
+        (field "category_id" int)
 
 
 employeeDecoder : Decoder Employee

@@ -10,7 +10,8 @@
     "compress": "gzip --best --force ./dist/app.min.js --to-stdout > ./dist/app.min.js.gz",
     "build": "npm run make && npm run optimise",
     "getip": "ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/'",
-    "live": "npm run getip | tail -n1 | xargs -I % sh -c 'elm-live ./src/Main.elm --output=./dist/app.dev.js --dir=./dist --host=% --open'"
+    "live": "npm run getip | tail -n1 | xargs -I % sh -c 'elm-live ./src/Main.elm --output=./dist/app.dev.js --dir=./dist --host=% --open'",
+    "robert": "elm-live ./src/Main.elm --output=./dist/app.dev.js --dir=./dist --host=robert.internal.worksap.com --open"
   },
   "devDependencies": {
     "elm": "*",

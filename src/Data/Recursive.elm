@@ -3,65 +3,68 @@ module Data.Recursive exposing (..)
 import Dict
 
 
-type alias Recursive id a =
-    { a
-        | id : id
-        , parentId : Maybe id
-    }
-
-
 getDirectDescendants :
-    Dict.Dict comparable (Recursive comparable a)
-    -> Recursive comparable a
-    -> List (Recursive comparable a)
-getDirectDescendants store parent =
+    (a -> comparable)
+    -> (a -> Maybe comparable)
+    -> Dict.Dict comparable a
+    -> a
+    -> List a
+getDirectDescendants toId toParentId store parent =
     store
         |> Dict.values
-        |> List.filter (.parentId >> ((==) <| Just parent.id))
+        |> List.filter (toParentId >> ((==) <| Just <| toId parent))
 
 
 getAllDescendants :
-    Dict.Dict comparable (Recursive comparable a)
-    -> Recursive comparable a
-    -> List (Recursive comparable a)
-getAllDescendants store parent =
+    (a -> comparable)
+    -> (a -> Maybe comparable)
+    -> Dict.Dict comparable a
+    -> a
+    -> List a
+getAllDescendants toId toParentId store parent =
     let
         descendants =
-            getDirectDescendants store parent
+            getDirectDescendants toId toParentId store parent
     in
-        descendants ++ List.foldl (getAllDescendants store >> (++)) [] descendants
+        descendants ++ List.foldl (getAllDescendants toId toParentId store >> (++)) [] descendants
 
 
 getWithAllDescendants :
-    Dict.Dict comparable (Recursive comparable a)
-    -> Recursive comparable a
-    -> List (Recursive comparable a)
-getWithAllDescendants store parent =
-    [ parent ] ++ getAllDescendants store parent
+    (a -> comparable)
+    -> (a -> Maybe comparable)
+    -> Dict.Dict comparable a
+    -> a
+    -> List a
+getWithAllDescendants toId toParentId store parent =
+    parent :: getAllDescendants toId toParentId store parent
 
 
 getParent :
-    Dict.Dict comparable (Recursive comparable a)
-    -> Recursive comparable a
-    -> Maybe (Recursive comparable a)
-getParent store child =
-    child.parentId
+    (a -> Maybe comparable)
+    -> Dict.Dict comparable a
+    -> a
+    -> Maybe a
+getParent toParentId store child =
+    child
+        |> toParentId
         |> Maybe.andThen (flip Dict.get store)
 
 
 getAncestry :
-    Dict.Dict comparable (Recursive comparable a)
-    -> Recursive comparable a
-    -> List (Recursive comparable a)
-getAncestry store child =
-    getParent store child
-        |> Maybe.map (\parent -> parent :: getAncestry store parent)
+    (a -> Maybe comparable)
+    -> Dict.Dict comparable a
+    -> a
+    -> List a
+getAncestry toParentId store child =
+    getParent toParentId store child
+        |> Maybe.map (\parent -> parent :: getAncestry toParentId store parent)
         |> Maybe.withDefault []
 
 
 getWithAncestry :
-    Dict.Dict comparable (Recursive comparable a)
-    -> Recursive comparable a
-    -> List (Recursive comparable a)
-getWithAncestry store child =
-    child :: getAncestry store child
+    (a -> Maybe comparable)
+    -> Dict.Dict comparable a
+    -> a
+    -> List a
+getWithAncestry toParentId store child =
+    child :: getAncestry toParentId store child

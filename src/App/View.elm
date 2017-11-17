@@ -2,8 +2,9 @@ module App.View exposing (..)
 
 import App.Component.Layout as Layout
 import App.Component.Menu as Menu
-import App.Page.Employee as Employee
 import App.Page.Summary as Summary
+import App.Page.Organisation as Organisation
+import App.Page.Employee as Employee
 import App.State exposing (..)
 import App.Util exposing (makeLazy)
 import Element exposing (..)
@@ -19,6 +20,7 @@ type Styles
     | MenuStyle Menu.Styles
     | EmployeeStyle Employee.Styles
     | SummaryStyle Summary.Styles
+    | OrganisationStyle Organisation.Styles
 
 
 styles : List (Style Styles variation)
@@ -32,6 +34,7 @@ styles =
         , map MenuStyle Menu.styles
         , map EmployeeStyle Employee.styles
         , map SummaryStyle Summary.styles
+        , map OrganisationStyle Organisation.styles
         ]
 
 
@@ -57,6 +60,12 @@ menu =
         >> mapAll MenuMsg MenuStyle identity
 
 
+organisationSidebar : Model -> Element Styles variation Msg
+organisationSidebar model =
+    Organisation.sidebar model.organisationPage model.organisations model.categories model.courses
+        |> mapAll OrganisationMsg OrganisationStyle identity
+
+
 employeeSidebar : Model -> Element Styles variation Msg
 employeeSidebar model =
     Employee.sidebar model.employeePage model.employees
@@ -67,7 +76,7 @@ sidebar : Model -> Maybe (Element Styles variation Msg)
 sidebar model =
     case model.menu of
         Menu.Organisation ->
-            Just (text "search")
+            Just (organisationSidebar model)
 
         Menu.Employee ->
             Just (employeeSidebar model)

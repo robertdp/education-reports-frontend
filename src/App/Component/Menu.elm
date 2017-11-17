@@ -24,14 +24,18 @@ type alias Model =
 
 
 type Msg
-    = NoOp
-    | SelectTab Tab
+    = SelectTab Tab
 
 
 type Tab
     = Summary
     | Organisation
     | Employee
+
+
+init : Model
+init =
+    Organisation
 
 
 styles : List (Style Styles variation)
@@ -53,11 +57,6 @@ styles =
         , Shadow.text { offset = ( 0.0, 0.0 ), blur = 0.0, color = white }
         ]
     ]
-
-
-init : Model
-init =
-    Employee
 
 
 icon : Tab -> Element style variation msg
@@ -89,14 +88,6 @@ view model =
                 ActiveTab
             else
                 InactiveTab
-
-        click tab =
-            (if tab == model then
-                NoOp
-             else
-                (SelectTab tab)
-            )
-                |> onClick
     in
         row Tabs
             [ width fill
@@ -114,7 +105,8 @@ view model =
                             |> el (class tab)
                                 [ width fill
                                 , height (px 60)
-                                , click tab
+                                , onClick <| SelectTab tab
+                                , toAttr <| Html.Attributes.title <| toString tab
                                 ]
                     )
             )
@@ -123,8 +115,5 @@ view model =
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        NoOp ->
-            model
-
         SelectTab tab ->
             tab

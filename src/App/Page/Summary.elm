@@ -63,15 +63,19 @@ view model =
                 |> List.indexedMap
                     (\x organisation ->
                         Element.text organisation.name
+                            |> Element.el (None)
+                                [ width <| px 300
+                                , height <| px 50
+                                ]
                             |> Element.el (DivisionName)
-                                [ width <| px 250
+                                [ width <| px 210
                                 , height <| px 50
                                 ]
                             |> List.singleton
                             |> Element.row (None)
                                 [ width <| px 50
-                                , height <| px 200
-                                , paddingTop 100
+                                , height <| px 210
+                                , paddingTop 120
                                 ]
                             |> (\content ->
                                     Element.cell
