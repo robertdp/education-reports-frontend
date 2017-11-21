@@ -93,19 +93,23 @@ content model =
                 { courses = RemoteData.withDefault [] model.courses
                 , organisations = RemoteData.withDefault [] model.organisations
                 , summaries = model.organisationSummaryMap
-                , courseIds = model.competingCourseIds
                 , organisationIds = model.competingDivisionIds
                 }
                 |> mapAll identity SummaryStyle identity
 
         Menu.Employee ->
             model.courses
-                |> RemoteData.map (flip Employee.view model.employeePage)
+                |> RemoteData.map (Employee.view model.employeePage)
                 |> RemoteData.withDefault empty
                 |> mapAll EmployeeMsg EmployeeStyle identity
 
-        _ ->
-            empty
+        Menu.Organisation ->
+            RemoteData.map (Organisation.view model.organisationPage) model.organisations
+                |> RemoteData.andMap model.employees
+                |> RemoteData.andMap model.categories
+                |> RemoteData.andMap model.courses
+                |> RemoteData.withDefault empty
+                |> mapAll OrganisationMsg OrganisationStyle identity
 
 
 view : Model -> Html Msg

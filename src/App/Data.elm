@@ -104,27 +104,15 @@ loadEmployeeEnrolments toMsg api employee =
             |> Cmd.map toMsg
 
 
-loadOrganisationEnrolments : (WebData (List Enrolment) -> msg) -> Url -> Maybe Organisation -> Maybe Course -> Cmd msg
-loadOrganisationEnrolments toMsg api organisation course =
-    if organisation == Nothing && course == Nothing then
-        Cmd.none
-    else
-        let
-            endpoint =
-                [ organisation |> Maybe.map (.id >> toString >> (++) "organisation_id=")
-                , course |> Maybe.map (.id >> toString >> (++) "course_id=")
-                ]
-                    |> List.filterMap identity
-                    |> String.join "&"
-                    |> (\query ->
-                            api
-                                ++ "/organisation?"
-                                ++ query
-                       )
-        in
-            Http.get endpoint (list enrolmentDecoder)
-                |> RemoteData.sendRequest
-                |> Cmd.map toMsg
+loadOrganisationEnrolments : (WebData (List Enrolment) -> msg) -> Url -> Organisation -> Cmd msg
+loadOrganisationEnrolments toMsg api organisation =
+    let
+        endpoint =
+            api ++ "/organisation?organisation_id=" ++ (toString organisation.id)
+    in
+        Http.get endpoint (list enrolmentDecoder)
+            |> RemoteData.sendRequest
+            |> Cmd.map toMsg
 
 
 initialDataDecoder : Decoder InitialData

@@ -73,7 +73,7 @@ view { toId, toParentId, show, title } items selected =
 
         children =
             selected
-                |> Maybe.map (getDirectDescendants toId toParentId itemMap)
+                |> Maybe.map (getDirectDescendants toId toParentId items)
                 |> Maybe.withDefault (List.filter (toParentId >> (==) Nothing) items)
 
         navigateUpMsg =

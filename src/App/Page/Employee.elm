@@ -173,8 +173,8 @@ showSearchResults =
         )
 
 
-view : List Course -> Model -> Element Styles variation Msg
-view courses model =
+view : Model -> List Course -> Element Styles variation Msg
+view model courses =
     let
         enrolmentsWithCourses : WebData (List ( Enrolment, Course ))
         enrolmentsWithCourses =

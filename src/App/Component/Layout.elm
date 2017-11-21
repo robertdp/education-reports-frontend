@@ -92,11 +92,12 @@ view toStyle { menu, title, sidebar, content } model =
                     )
                 |> Maybe.withDefault empty
             , content model
+                |> el (toStyle None) []
                 |> el (toStyle Content)
-                    [ paddingXY 32 24
-                    , width fill
+                    [ width fill
                     , height fill
-                    , yScrollbar
+                    , scrollbars
+                    , paddingXY 32 24
                     ]
             ]
         ]

@@ -6,37 +6,36 @@ import Dict
 getDirectDescendants :
     (a -> comparable)
     -> (a -> Maybe comparable)
-    -> Dict.Dict comparable a
+    -> List a
     -> a
     -> List a
-getDirectDescendants toId toParentId store parent =
-    store
-        |> Dict.values
+getDirectDescendants toId toParentId items parent =
+    items
         |> List.filter (toParentId >> ((==) <| Just <| toId parent))
 
 
 getAllDescendants :
     (a -> comparable)
     -> (a -> Maybe comparable)
-    -> Dict.Dict comparable a
+    -> List a
     -> a
     -> List a
-getAllDescendants toId toParentId store parent =
+getAllDescendants toId toParentId items parent =
     let
         descendants =
-            getDirectDescendants toId toParentId store parent
+            getDirectDescendants toId toParentId items parent
     in
-        descendants ++ List.foldl (getAllDescendants toId toParentId store >> (++)) [] descendants
+        descendants ++ List.foldl (getAllDescendants toId toParentId items >> (++)) [] descendants
 
 
 getWithAllDescendants :
     (a -> comparable)
     -> (a -> Maybe comparable)
-    -> Dict.Dict comparable a
+    -> List a
     -> a
     -> List a
-getWithAllDescendants toId toParentId store parent =
-    parent :: getAllDescendants toId toParentId store parent
+getWithAllDescendants toId toParentId items parent =
+    parent :: getAllDescendants toId toParentId items parent
 
 
 getParent :

@@ -37,8 +37,7 @@ styles =
 
 view :
     { a
-        | courseIds : Set Id
-        , courses : List Course
+        | courses : List Course
         , organisationIds : Set Id
         , organisations : List Organisation
         , summaries : Dict Id (Dict.Dict Id OrganisationSummary)

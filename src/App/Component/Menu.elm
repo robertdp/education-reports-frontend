@@ -35,7 +35,7 @@ type Tab
 
 init : Model
 init =
-    Organisation
+    Summary
 
 
 styles : List (Style Styles variation)

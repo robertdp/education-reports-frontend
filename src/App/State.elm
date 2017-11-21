@@ -12,7 +12,6 @@ import Set exposing (Set)
 
 type alias Flags =
     { api : String
-    , competingCourses : List String
     , competingDivisions : List String
     }
 
@@ -20,7 +19,6 @@ type alias Flags =
 type alias Model =
     { api : String
     , categories : WebData (List Category)
-    , competingCourses : Set String
     , competingCourseIds : Set Id
     , competingDivisions : Set String
     , competingDivisionIds : Set Id
@@ -46,7 +44,6 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     { api = flags.api
     , categories = NotAsked
-    , competingCourses = Set.fromList flags.competingCourses
     , competingCourseIds = Set.empty
     , competingDivisions = Set.fromList flags.competingDivisions
     , competingDivisionIds = Set.empty
@@ -109,19 +106,6 @@ update msg model =
                 organisations =
                     RemoteData.map .organisations data
 
-                competingCourseIds =
-                    model.competingCourses
-                        |> Set.toList
-                        |> List.filterMap
-                            (\courseName ->
-                                courses
-                                    |> RemoteData.withDefault []
-                                    |> List.filter (\course -> course.name == courseName)
-                                    |> List.head
-                                    |> Maybe.map .id
-                            )
-                        |> Set.fromList
-
                 competingDivisionIds =
                     model.competingDivisions
                         |> Set.toList
@@ -148,7 +132,6 @@ update msg model =
             in
                 { model
                     | categories = categories
-                    , competingCourseIds = competingCourseIds
                     , competingDivisionIds = competingDivisionIds
                     , courses = courses
                     , employees = employees
