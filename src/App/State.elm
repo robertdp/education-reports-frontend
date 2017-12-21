@@ -2,6 +2,7 @@ module App.State exposing (..)
 
 import App.Component.Menu as Menu
 import App.Page.Organisation as Organisation
+import App.Page.Summary as Summary
 import App.Page.Employee as Employee
 import App.Data exposing (..)
 import Data.Record as Record
@@ -24,19 +25,21 @@ type alias Model =
     , competingDivisionIds : Set Id
     , courses : WebData (List Course)
     , employeeMap : Dict Email Employee
+    , employeePage : Employee.Model
     , employees : WebData (List Employee)
     , menu : Menu.Model
     , organisationPage : Organisation.Model
     , organisationSummaryMap : Dict Id (Dict Id OrganisationSummary)
     , organisations : WebData (List Organisation)
-    , employeePage : Employee.Model
+    , summaryPage : Summary.Model
     }
 
 
 type Msg
     = MenuMsg Menu.Msg
-    | EmployeeMsg Employee.Msg
+    | SummaryMsg Summary.Msg
     | OrganisationMsg Organisation.Msg
+    | EmployeeMsg Employee.Msg
     | LoadedInitialData (WebData InitialData)
 
 
@@ -49,12 +52,13 @@ init flags =
     , competingDivisionIds = Set.empty
     , courses = NotAsked
     , employeeMap = Dict.empty
+    , employeePage = Employee.init
     , employees = NotAsked
     , menu = Menu.init
     , organisationPage = Organisation.init
     , organisationSummaryMap = Dict.empty
     , organisations = NotAsked
-    , employeePage = Employee.init
+    , summaryPage = Summary.init
     }
         ! [ loadInitialData LoadedInitialData flags.api
           ]
@@ -70,6 +74,14 @@ update msg model =
     case msg of
         MenuMsg msg_ ->
             { model | menu = Menu.update msg_ model.menu } ! []
+
+        SummaryMsg msg_ ->
+            let
+                ( model_, cmds ) =
+                    Summary.update model.api msg_ model.summaryPage
+            in
+                { model | summaryPage = model_ }
+                    ! [ Cmd.map SummaryMsg cmds ]
 
         EmployeeMsg msg_ ->
             let

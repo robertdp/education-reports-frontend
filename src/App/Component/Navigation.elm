@@ -1,4 +1,4 @@
-module App.Component.Navigation exposing (..)
+module App.Component.Navigation exposing (Styles, Msg, Model, init, initWithSelected, styles, view, update)
 
 import Color exposing (..)
 import Data.Record as Record

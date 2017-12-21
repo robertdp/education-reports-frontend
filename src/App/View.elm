@@ -6,7 +6,6 @@ import App.Page.Summary as Summary
 import App.Page.Organisation as Organisation
 import App.Page.Employee as Employee
 import App.State exposing (..)
-import App.Util exposing (makeLazy)
 import Element exposing (..)
 import Html exposing (Html)
 import RemoteData
@@ -32,8 +31,8 @@ styles =
         [ Style.style None []
         , map LayoutStyle Layout.styles
         , map MenuStyle Menu.styles
-        , map EmployeeStyle Employee.styles
         , map SummaryStyle Summary.styles
+        , map EmployeeStyle Employee.styles
         , map OrganisationStyle Organisation.styles
         ]
 
@@ -48,7 +47,7 @@ layout =
     Layout.view LayoutStyle
         { menu = menu
         , title = always "HUE Education Reports"
-        , sidebar = sidebar
+        , sidebar = Just << sidebar
         , content = content
         }
 
@@ -60,43 +59,40 @@ menu =
         >> mapAll MenuMsg MenuStyle identity
 
 
-organisationSidebar : Model -> Element Styles variation Msg
-organisationSidebar model =
-    Organisation.sidebar model.organisationPage model.organisations model.categories model.courses
-        |> mapAll OrganisationMsg OrganisationStyle identity
-
-
-employeeSidebar : Model -> Element Styles variation Msg
-employeeSidebar model =
-    Employee.sidebar model.employeePage model.employees
-        |> mapAll EmployeeMsg EmployeeStyle identity
-
-
-sidebar : Model -> Maybe (Element Styles variation Msg)
+sidebar : Model -> Element Styles variation Msg
 sidebar model =
     case model.menu of
+        Menu.Summary ->
+            Summary.sidebar model.summaryPage model.organisations
+                |> mapAll SummaryMsg SummaryStyle identity
+
         Menu.Organisation ->
-            Just (organisationSidebar model)
+            Organisation.sidebar model.organisationPage model.organisations model.categories model.courses
+                |> mapAll OrganisationMsg OrganisationStyle identity
 
         Menu.Employee ->
-            Just (employeeSidebar model)
-
-        _ ->
-            Nothing
+            Employee.sidebar model.employeePage model.employees
+                |> mapAll EmployeeMsg EmployeeStyle identity
 
 
 content : Model -> Element Styles variation Msg
 content model =
     case model.menu of
         Menu.Summary ->
-            Summary.view
-                { courses = RemoteData.withDefault [] model.courses
-                , organisations = RemoteData.withDefault [] model.organisations
-                , summaries = model.organisationSummaryMap
-                , organisationIds = model.competingDivisionIds
-                }
-                |> mapAll identity SummaryStyle identity
+            RemoteData.map (Summary.view model.summaryPage) model.courses
+                |> RemoteData.andMap (RemoteData.succeed model.competingDivisionIds)
+                |> RemoteData.andMap model.organisations
+                |> RemoteData.andMap (RemoteData.succeed model.organisationSummaryMap)
+                |> RemoteData.withDefault empty
+                |> mapAll SummaryMsg SummaryStyle identity
 
+        -- Summary.view
+        --     { courses = RemoteData.withDefault [] model.courses
+        --     , organisations = RemoteData.withDefault [] model.organisations
+        --     , summaries = model.organisationSummaryMap
+        --     , organisationIds = model.competingDivisionIds
+        --     }
+        --     |> mapAll identity SummaryStyle identity
         Menu.Employee ->
             model.courses
                 |> RemoteData.map (Employee.view model.employeePage)

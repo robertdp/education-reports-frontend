@@ -313,8 +313,7 @@ update api msg model =
         SelectOrganisation organisation ->
             { model
                 | selectedOrganisation = organisation
-                , enrolments =
-                    Loading
+                , enrolments = Loading
             }
                 ! [ organisation
                         |> Maybe.map (\organisation -> loadOrganisationEnrolments (LoadedEnrolments organisation) api organisation)
